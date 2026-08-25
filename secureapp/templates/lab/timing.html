@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Timing · Security Lab{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 03</div>
+    <h1>How long it took is an answer too</h1>
+    <p class="muted">A verifier that stops at the first wrong byte takes longer when more of the
+      guess was right. That is enough to find a 32 byte MAC one byte at a time, without ever
+      guessing the whole thing. Three ways of comparing the same bytes, each the median of
+      thirteen runs of {{ rounds }} comparisons.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Correct leading bytes</th>
+          <th>Hand written loop</th><th></th>
+          <th>== on bytes</th>
+          <th>compare_digest</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td class="mono">{{ row.prefix }} of 32</td>
+            <td class="num">{{ row.loop|floatformat:0 }} ns</td>
+            <td style="width:38%"><div class="bar"><i style="width: {{ row.loop_pct }}%"></i></div></td>
+            <td class="num">{{ row.eq|floatformat:0 }} ns</td>
+            <td class="num">{{ row.safe|floatformat:0 }} ns</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-foot">
+    <span class="badge broken">loop: {{ loop_ratio|floatformat:1 }}&times; slower at 31 bytes than at 0</span>
+    <span class="badge plain">==: {{ eq_ratio|floatformat:1 }}&times;</span>
+    <span class="badge verified">compare_digest: {{ safe_ratio|floatformat:1 }}&times;</span>
+  </div>
+</div>
+
+<div class="grid grid-2" style="margin-top: var(--s5)">
+  <div class="card is-broken">
+    <div class="card-head"><h3>The loop leaks, plainly</h3></div>
+    <div class="card-body">
+      <p class="small muted">It climbs straight up with the number of correct bytes, because it
+        does one Python comparison per byte and returns at the first mismatch. An attacker tries
+        all 256 values for byte one, keeps the slowest, and moves on. That is 8192 attempts to
+        forge a MAC, instead of 2<sup>256</sup>.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>== is not the interesting case here</h3></div>
+    <div class="card-body">
+      <p class="small muted">Comparing two <code>bytes</code> objects in CPython drops into
+        <code>memcmp</code>, which reads several bytes at a time in C. Over 32 bytes the whole
+        comparison is faster than the loop that calls it, so the difference is buried in noise
+        &mdash; on this run, a spread of {{ eq_spread|floatformat:0 }} ns against the loop&rsquo;s
+        {{ loop_spread|floatformat:0 }} ns. That is a measurement failing to find something, not
+        proof it is safe: the same code on longer data, or in another runtime, has no such cover.</p>
+    </div>
+  </div>
+</div>
+
+<div class="note verified" style="margin-top: var(--s5)">
+  <span><b>So SafeBook uses <code>hmac.compare_digest</code>.</b> It always reads every byte,
+    whatever it finds. It costs nothing and it removes the question &mdash; which is the right
+    trade when the alternative is arguing about whether a leak is small enough to ignore.</span>
+</div>
+{% endblock %}

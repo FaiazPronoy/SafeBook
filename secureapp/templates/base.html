@@ -1,115 +1,91 @@
-{% load static %}
-<!doctype html>
+{% load static %}<!doctype html>
 <html lang="en" data-theme="light">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <title>{% block title %}SafeBook{% endblock %}</title>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SafeBook{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+  <script>
+    // set the theme before the first paint, so the page never flashes white
+    (function () {
+      try {
+        var stored = localStorage.getItem("safebook-theme");
+        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", stored || (dark ? "dark" : "light"));
+      } catch (e) {}
+    })();
+  </script>
+  {% block head %}{% endblock %}
+</head>
+<body>
 
-    <!-- App styles -->
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+<header class="site-header">
+  <nav class="nav container">
+    <a class="brand" href="{% url 'index' %}">
+      <span class="brand-mark" aria-hidden="true">&#9679;</span>
+      SafeBook
+    </a>
 
-    <!-- Prevent theme flash -->
-    <script>
-      (function(){
-        try {
-          const stored = localStorage.getItem('theme-v1');
-          const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
-          document.documentElement.setAttribute('data-theme', theme);
-        } catch(e) {}
-      })();
-    </script>
+    {% with here=request.resolver_match.url_name %}
+    <div class="nav-links">
+      {% if user.is_authenticated %}
+        <a href="{% url 'index' %}" {% if here == 'index' %}class="active"{% endif %}>Dashboard</a>
+        <a href="{% url 'feed' %}" {% if here == 'feed' or here == 'post_detail' %}class="active"{% endif %}>Feed</a>
+        <a href="{% url 'messages_inbox' %}" {% if 'message' in here %}class="active"{% endif %}>Messages</a>
+        <a href="{% url 'directory' %}" {% if here == 'directory' %}class="active"{% endif %}>People</a>
+        <a href="{% url 'lab' %}" {% if here|slice:":3" == 'lab' %}class="active"{% endif %}>Security Lab</a>
+      {% endif %}
+    </div>
+    {% endwith %}
 
-    {% block extra_head %}{% endblock %}
-  </head>
-  <body>
-    <!-- Top Nav -->
-    <header class="site-header">
-      <nav class="nav container">
-        <a class="brand" href="{% url 'index' %}" aria-label="Home">
-          <span class="brand-icon" aria-hidden="true">🔐</span>
-          <span class="brand-name">SafeBook</span>
+    <div class="nav-right">
+      <button id="theme" class="btn-quiet" type="button" aria-label="Switch theme">&#9682;</button>
+      {% if user.is_authenticated %}
+        <a class="chip" href="{% url 'account' %}">
+          <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
+          <span>{{ user.username }}</span>
         </a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="btn-ghost tiny" type="submit">Sign out</button>
+        </form>
+      {% else %}
+        <a class="btn-ghost tiny" href="{% url 'login' %}">Sign in</a>
+        <a class="btn tiny" href="{% url 'register' %}">Create account</a>
+      {% endif %}
+    </div>
+  </nav>
+</header>
 
-        <div class="nav-links">
-          {% if user.is_authenticated %}
-            <a href="{% url 'index' %}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
-            <a href="{% url 'feed' %}">Public Feed</a>  
-            <a href="{% url 'post_new' %}" class="{% if request.path == '/posts/new/' %}active{% endif %}">New Post</a>
-            <a href="{% url 'messages_inbox' %}" class="{% if request.path|slice:':10' == '/messages' %}active{% endif %}">Messages</a>
-          {% else %}
-            <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'register' %}">Register</a>
-          {% endif %}
-        </div>
+{% if messages %}
+  <div class="container">
+    <ul class="flashes" role="status" aria-live="polite">
+      {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}
+    </ul>
+  </div>
+{% endif %}
 
-        <div class="nav-right">
-          <button id="themeToggle" class="btn-ghost small" type="button" aria-label="Toggle color theme" title="Toggle theme">
-            <span class="theme-icon" aria-hidden="true">🌙</span>
-          </button>
-          {% if user.is_authenticated %}
-            <span class="user-chip" title="Logged in as {{ user.username }}">
-              <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
-              <span class="uname">{{ user.username }}</span>
-            </span>
-            <a class="btn-ghost small" href="{% url 'logout' %}">Logout</a>
-          {% endif %}
-        </div>
-      </nav>
-    </header>
+<main class="container">{% block content %}{% endblock %}</main>
 
-    <!-- Flash messages -->
-    {% if messages %}
-      <div class="container">
-        <ul class="flashes" role="status" aria-live="polite">
-          {% for m in messages %}
-            <li class="{{ m.tags }}">{{ m }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span>SafeBook &middot; CSE447 Cryptography and Cryptanalysis</span>
+    <span>AES-256-GCM &middot; RSA-2048-OAEP &middot; HMAC-SHA256 &middot; scrypt &middot; Argon2id</span>
+  </div>
+</footer>
 
-    <!-- Page content -->
-    <main class="container">
-      {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-      <div class="container footer-inner">
-        <small>&copy; {{ now|date:"Y" }} SafeBook App. All rights reserved.</small>
-
-      </div>
-    </footer>
-
-    <!-- Theme + small utilities -->
-    <script>
-      (function () {
-        const root = document.documentElement;
-        const btn = document.getElementById('themeToggle');
-        const icon = btn && btn.querySelector('.theme-icon');
-
-        function setTheme(next) {
-          root.setAttribute('data-theme', next);
-          try { localStorage.setItem('theme-v1', next); } catch (e) {}
-          if (icon) icon.textContent = next === 'dark' ? '☀️' : '🌙';
-          btn && btn.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-          btn && btn.setAttribute('title', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-        }
-
-        btn && btn.addEventListener('click', function () {
-          const current = root.getAttribute('data-theme') || 'light';
-          setTheme(current === 'light' ? 'dark' : 'light');
-        });
-
-        // Sync icon on load
-        const current = root.getAttribute('data-theme') || 'light';
-        if (icon) icon.textContent = current === 'dark' ? '☀️' : '🌙';
-      })();
-    </script>
-
-    {% block extra_js %}{% endblock %}
-  </body>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var button = document.getElementById("theme");
+    if (!button) return;
+    button.addEventListener("click", function () {
+      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("safebook-theme", next); } catch (e) {}
+    });
+  })();
+</script>
+{% block scripts %}{% endblock %}
+</body>
 </html>

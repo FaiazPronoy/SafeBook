@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Account · SafeBook{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Account</div>
+    <h1>{{ user.username }}</h1>
+  </div>
+</div>
+
+<div class="dash">
+  <section class="card col-6 is-private">
+    <div class="card-head"><h2>Encrypted profile</h2></div>
+    <div class="card-body">
+      <dl class="kv">
+        <dt>Email</dt><dd>{{ email|default:"not set" }}</dd>
+        <dt>Phone</dt><dd>{{ phone|default:"not set" }}</dd>
+      </dl>
+      <p class="small muted" style="margin-top: var(--s5)">Both are AES-256-GCM ciphertext in the
+        database. They are readable on this page only because your key is unwrapped for the
+        length of this session.</p>
+      <div class="grid grid-2" style="margin-top: var(--s4)">
+        <div class="stat"><div class="n brand">{{ private_posts }}</div><div class="l">private posts</div></div>
+        <div class="stat"><div class="n amber">{{ public_posts }}</div><div class="l">public posts</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card col-6">
+    <div class="card-head"><h2>Change password</h2></div>
+    <div class="card-body">
+      <form method="post" action="{% url 'change_password' %}" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" %}
+        <button class="btn" type="submit">Change password</button>
+      </form>
+      <div class="note verified" style="margin-top: var(--s4)">
+        <span>This rewrites one envelope of {{ envelope_len }} bytes and nothing
+          else. Not one post is re-encrypted, which is the whole reason keys are
+          wrapped inside keys.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card col-6 is-verified">
+    <div class="card-head"><h2>Messaging key</h2></div>
+    <div class="card-body">
+      <div class="fingerprint">{{ fingerprint }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">SHA-256 over your RSA-2048 public key.
+        Read it to people out of band; if their copy differs, something between you swapped it.</p>
+    </div>
+  </section>
+
+  <section class="card col-6">
+    <div class="card-head">
+      <h2>Your key envelope</h2>
+      <span class="badge plain">server KEK gen {{ kek_id }}</span>
+    </div>
+    <div class="card-body">
+      <p class="small muted">This is your data key, as the database stores it: encrypted under a
+        scrypt key derived from your password. Nobody can turn these bytes back into a key
+        without the password that made it.</p>
+      <div class="hex">{{ envelope_hex }}</div>
+    </div>
+  </section>
+
+  <section class="card col-12">
+    <div class="card-head"><h2>Recent sign-in attempts</h2></div>
+    {% if attempts %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>When</th><th>Result</th><th>From</th><th>Client</th></tr></thead>
+          <tbody>
+            {% for a in attempts %}
+              <tr>
+                <td>{{ a.at|date:"j M Y, H:i:s" }}</td>
+                <td>{% if a.successful %}<span class="badge verified">Signed in</span>
+                    {% else %}<span class="badge broken">Failed</span>{% endif %}</td>
+                <td class="mono">{{ a.ip|default:"unknown" }}</td>
+                <td class="small muted">{{ a.user_agent|truncatechars:52|default:"unknown" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="card-foot muted">Five failures in fifteen minutes locks the account for the
+        rest of that window, whether or not the username exists.</div>
+    {% else %}
+      <div class="empty"><h3>No attempts recorded</h3></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

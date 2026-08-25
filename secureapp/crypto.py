@@ -1,26 +1,46 @@
+"""AES-GCM, and the two ways this app wraps a key.
+
+Everything encrypted here is AEAD: the nonce and the ciphertext travel
+together and every call passes an `aad` string naming the column it belongs
+to, so a ciphertext lifted out of one column and dropped into another will
+not decrypt.
+"""
+
 import os
+
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+NONCE_LEN = 12          # 96 bits, the size AES-GCM is defined for
+KEY_LEN = 32            # AES-256
 
 AAD_DEK_WRAP = b"dek-wrap"
 
+
 def aead_encrypt(key: bytes, plaintext: bytes, aad: bytes = b"") -> tuple[bytes, bytes]:
-    aes = AESGCM(key)
-    nonce = os.urandom(12)  # 96-bit nonce
-    ct = aes.encrypt(nonce, plaintext, aad)
-    return nonce, ct
+    nonce = os.urandom(NONCE_LEN)
+    return nonce, AESGCM(key).encrypt(nonce, plaintext, aad)
+
 
 def aead_decrypt(key: bytes, nonce: bytes, ct: bytes, aad: bytes = b"") -> bytes:
-    aes = AESGCM(key)
-    return aes.decrypt(nonce, ct, aad)
-
-def wrap_dek_with_kek(dek: bytes, kek: bytes) -> bytes:
-    # Use AES-GCM as a simple key wrapper
-    n, ct = aead_encrypt(kek, dek, AAD_DEK_WRAP)
-    return n + ct
-
-def unwrap_dek_with_kek(wrapped: bytes, kek: bytes) -> bytes:
-    n, ct = wrapped[:12], wrapped[12:]
-    return aead_decrypt(kek, n, ct, AAD_DEK_WRAP)
+    return AESGCM(key).decrypt(bytes(nonce), bytes(ct), aad)
 
 
+def wrap_key(inner: bytes, wrapping_key: bytes, aad: bytes = AAD_DEK_WRAP) -> bytes:
+    """Encrypt one key under another and return nonce||ciphertext as one blob."""
+    nonce, ct = aead_encrypt(wrapping_key, inner, aad)
+    return nonce + ct
 
+
+def unwrap_key(blob: bytes, wrapping_key: bytes, aad: bytes = AAD_DEK_WRAP) -> bytes:
+    blob = bytes(blob)
+    return aead_decrypt(wrapping_key, blob[:NONCE_LEN], blob[NONCE_LEN:], aad)
+
+
+# the old names, kept because the KEK rotation command and the key envelope
+# service both read better with them
+wrap_dek_with_kek = wrap_key
+unwrap_dek_with_kek = unwrap_key
+
+
+def new_key() -> bytes:
+    return os.urandom(KEY_LEN)

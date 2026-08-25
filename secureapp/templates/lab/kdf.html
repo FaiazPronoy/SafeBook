@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Password storage · Security Lab{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 04</div>
+    <h1>Guesses per second</h1>
+    <p class="muted">Someone who steals the database is going to run a wordlist against it. How
+      far they get depends entirely on how expensive one guess is. All four timed on this
+      machine, just now.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Function</th><th>One call</th><th></th><th>Guesses / second</th>
+            <th>Slower by</th><th>Six lowercase letters</th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>
+              <b>{{ row.name }}</b>
+              <div class="small muted">{{ row.note }}</div>
+            </td>
+            <td class="num">{{ row.ms|floatformat:3 }} ms</td>
+            <td style="width:28%">
+              <div class="bar {% if row.slowdown < 100 %}amber{% else %}safe{% endif %}">
+                <i style="width: {{ row.bar }}%"></i>
+              </div>
+            </td>
+            <td class="num">{{ row.per_second|floatformat:0 }}</td>
+            <td class="num">{% if row.slowdown > 1.5 %}{{ row.slowdown|floatformat:0 }}&times;{% else %}&mdash;{% endif %}</td>
+            <td class="num">{% if row.crack_days < 1 %}{{ row.crack_days|floatformat:3 }} days
+                {% elif row.crack_days < 900 %}{{ row.crack_days|floatformat:0 }} days
+                {% else %}{{ row.crack_days|floatformat:0 }} days{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-foot muted">
+    The last column walks every six letter lowercase password &mdash; {{ space|floatformat:0 }} of
+    them &mdash; at the speed in the column before it, on this one machine. An attacker with a
+    graphics card is thousands of times faster than this on MD5 and barely faster at all on
+    Argon2id, because memory is the thing Argon2 makes them buy and cores are not a substitute.
+  </div>
+</div>
+
+<div class="note verified" style="margin-top: var(--s5)">
+  <span>SafeBook uses both, for two different jobs: Argon2id decides whether a password is
+    right, and scrypt turns that same password into the key that opens the data. Neither
+    result is ever stored next to the other.</span>
+</div>
+{% endblock %}

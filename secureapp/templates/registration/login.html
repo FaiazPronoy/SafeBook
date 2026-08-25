@@ -1,73 +1,26 @@
 {% extends "base.html" %}
+{% block title %}Sign in · SafeBook{% endblock %}
 {% block content %}
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-head">
-      <h1>Welcome back</h1>
-      <p class="muted">Log in to your account</p>
-    </div>
+<div class="auth">
+  <div class="card">
+    <div class="card-body">
+      <div class="eyebrow">Sign in</div>
+      <h1>Unlock your vault</h1>
+      <p class="muted small">Your password is checked against an Argon2id hash, and then used a
+        second time &mdash; run through scrypt to derive the key that opens your data. Neither
+        the password nor that key is ever stored.</p>
 
-    {% if messages %}
-      <ul class="flashes">
-        {% for m in messages %}
-          <li class="{{ m.tags }}">{{ m }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" %}
+        <button class="btn" type="submit" style="width:100%">Sign in</button>
+      </form>
 
-    {% if form.non_field_errors %}
-      <div class="alert alert-error">
-        {{ form.non_field_errors }}
-      </div>
-    {% endif %}
-
-    <form method="post" class="auth-form">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{{ request.GET.next }}">
-
-      <div class="form-control">
-        <label for="{{ form.username.id_for_label }}">Username</label>
-        {{ form.username }}
-        {% if form.username.errors %}
-          <div class="field-error">{{ form.username.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="form-control">
-        <label for="{{ form.password.id_for_label }}">Password</label>
-        <div class="password-row">
-          {{ form.password }}
-          <button type="button" class="btn-ghost" id="togglePw" aria-label="Show password">Show</button>
-        </div>
-        {% if form.password.errors %}
-          <div class="field-error">{{ form.password.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="form-actions">
-        <button class="btn-primary" type="submit">Log In</button>
-      </div>
-    </form>
-
-    <div class="auth-foot">
-      <span class="muted">No account?</span>
-      <a href="{% url 'register' %}" class="link">Register</a>
+      <p class="small muted" style="margin-top: var(--s5)">
+        No account? <a href="{% url 'register' %}">Create one</a>.
+        Lost your password? <a href="{% url 'recover' %}">Use your recovery code</a>.
+      </p>
     </div>
   </div>
 </div>
-
-<script>
-  (function () {
-    const btn = document.getElementById('togglePw');
-    const pwd = document.getElementById('{{ form.password.id_for_label }}');
-    if (btn && pwd) {
-      btn.addEventListener('click', function () {
-        const isPwd = pwd.getAttribute('type') === 'password';
-        pwd.setAttribute('type', isPwd ? 'text' : 'password');
-        btn.textContent = isPwd ? 'Hide' : 'Show';
-        btn.setAttribute('aria-label', isPwd ? 'Hide password' : 'Show password');
-      });
-    }
-  })();
-</script>
 {% endblock %}

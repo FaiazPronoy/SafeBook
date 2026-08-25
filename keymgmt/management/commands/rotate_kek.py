@@ -1,71 +1,80 @@
-import base64, os
+"""Replace the server KEK without re-encrypting a single post.
+
+Each public post carries its content key wrapped under the KEK. Rotating
+means unwrapping that 32 byte key with the old KEK and wrapping it again
+with the new one. The post's own ciphertext is never read and never
+rewritten, which is the reason for wrapping keys inside keys in the first
+place.
+
+Private posts hold no server-wrapped key at all, so there is nothing here
+for the server to rotate - and nothing for it to read either.
+"""
+
+import base64
+
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
-from django.contrib.auth import get_user_model
-from keymgmt.models import KeyEnvelope
-from keymgmt.services import unwrap_dek, wrap_dek, get_active_kek
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from keymgmt.services import get_active_kek, unwrap_dek, wrap_dek, generate_dek
-from keymgmt.models import KeyEnvelope
-from secureapp.crypto import aead_decrypt, aead_encrypt
+from django.db import transaction
+
+from keymgmt.services import VALID_KEY_SIZES, get_active_kek
+from secureapp.crypto import unwrap_key, wrap_key
+from secureapp.keys import AAD_POST_KEY_PUBLIC
+from secureapp.models import Post
+
 
 class Command(BaseCommand):
-    help = "Rotate KEK: rewrap all user DEKs from current KEK to a new KEK (base64)."
+    help = "Re-wrap every public post key from the current KEK to a new one."
 
     def add_arguments(self, parser):
-        parser.add_argument("--new-kek-b64", required=True, help="Base64-encoded new KEK bytes")
-        parser.add_argument("--new-kek-id", type=int, required=True, help="Integer ID for the new KEK")
+        parser.add_argument("--new-kek-b64", required=True,
+                            help="the replacement KEK, base64 encoded")
+        parser.add_argument("--new-kek-id", type=int, required=True,
+                            help="the id to record against the re-wrapped keys")
+        parser.add_argument("--dry-run", action="store_true",
+                            help="report what would change and write nothing")
 
-    def handle(self, *args, **opts):
-        new_b64 = opts["new_kek_b64"]
-        new_kek_id = opts["new_kek_id"]
+    def handle(self, *args, **options):
         try:
-            new_kek = base64.b64decode(new_b64)
-        except Exception as e:
-            raise CommandError(f"Invalid new kek b64: {e}")
-        if len(new_kek) not in (16, 24, 32):
-            raise CommandError("New KEK must be 16/24/32 bytes after base64 decode")
+            new_kek = base64.b64decode(options["new_kek_b64"], validate=True)
+        except Exception as exc:
+            raise CommandError(f"--new-kek-b64 is not valid base64: {exc}")
+        if len(new_kek) not in VALID_KEY_SIZES:
+            raise CommandError(
+                f"the new KEK decodes to {len(new_kek)} bytes; AES needs 16, 24 or 32."
+            )
 
-        old_kek_id, old_kek = get_active_kek()
-        total = 0
+        old_kek, old_id = get_active_kek()
+        new_id = options["new_kek_id"]
+        if new_kek == old_kek:
+            raise CommandError("the new KEK is the same as the current one.")
 
-        for env in KeyEnvelope.objects.select_related("user").all():
-            # unwrap with old, wrap with new
-            dek = unwrap_dek(env.wrapped_dek, old_kek)
-            env.wrapped_dek = wrap_dek(dek, new_kek)
-            env.kek_id = new_kek_id
-            env.save(update_fields=["wrapped_dek", "kek_id"])
-            total += 1
+        rows = Post.objects.filter(is_public=True).exclude(key_public=None)
+        done = 0
 
+        with transaction.atomic():
+            for post in rows:
+                try:
+                    post_key = unwrap_key(post.key_public, old_kek, AAD_POST_KEY_PUBLIC)
+                except Exception:
+                    raise CommandError(
+                        f"post {post.id} does not open with the current KEK. "
+                        "Check KEYMGMT_ACTIVE_KEK_ID matches APP_KEK_BASE64 before rotating."
+                    )
+                if not options["dry_run"]:
+                    post.key_public = wrap_key(post_key, new_kek, AAD_POST_KEY_PUBLIC)
+                    post.key_public_kek_id = new_id
+                    post.save(update_fields=["key_public", "key_public_kek_id"])
+                done += 1
+
+            if options["dry_run"]:
+                transaction.set_rollback(True)
+
+        verb = "would re-wrap" if options["dry_run"] else "re-wrapped"
         self.stdout.write(self.style.SUCCESS(
-            f"Rewrapped {total} user DEKs from KEK {old_kek_id} to KEK {new_kek_id}. "
-            "Remember to update .env: KEYMGMT_ACTIVE_KEK_ID and APP_KEK_BASE64"
+            f"{verb} {done} public post keys from KEK {old_id} to KEK {new_id}."
         ))
-        _, kek = get_active_kek()
-        Account = get_user_model()
-        total = 0
-        for u in Account.objects.all():
-            env = u.key_envelope
-            old_dek = unwrap_dek(env.wrapped_dek, kek)
-
-            # decrypt existing data
-            email = aead_decrypt(old_dek, u.email_nonce, u.email_ct, b"users.email") if u.email_ct else b""
-            phone = aead_decrypt(old_dek, u.phone_nonce, u.phone_ct, b"users.phone") if u.phone_ct else b""
-            priv = aead_decrypt(old_dek, u.privkey_nonce, u.privkey_ct, b"user.private_key") if u.privkey_ct else b""
-
-            # new DEK
-            new_dek = generate_dek()
-            env.wrapped_dek = wrap_dek(new_dek, kek)
-            env.save()
-
-            # re-encrypt
-            if email:
-                u.email_nonce, u.email_ct = aead_encrypt(new_dek, email, b"users.email")
-            if phone:
-                u.phone_nonce, u.phone_ct = aead_encrypt(new_dek, phone, b"users.phone")
-            if priv:
-                u.privkey_nonce, u.privkey_ct = aead_encrypt(new_dek, priv, b"user.private_key")
-            u.save()
-            total += 1
-        self.stdout.write(self.style.SUCCESS(f"Rotated DEKs for {total} users."))
+        if not options["dry_run"]:
+            self.stdout.write(self.style.WARNING(
+                "Now update .env: APP_KEK_BASE64 to the new key and "
+                f"KEYMGMT_ACTIVE_KEK_ID to {new_id}. Until you do, the feed "
+                "cannot open any of these posts."
+            ))

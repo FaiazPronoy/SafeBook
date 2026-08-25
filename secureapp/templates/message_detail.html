@@ -1,35 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Message · SafeBook App{% endblock %}
+{% block title %}{{ title }} · SafeBook{% endblock %}
 {% block content %}
-
 <div class="page-head">
-  <h1>{{ title }}</h1>
-  <a class="btn-ghost" href="{% url 'messages_inbox' %}">← Back to Inbox</a>
+  <div>
+    <div class="eyebrow">
+      {% if as_recipient %}from{% else %}to{% endif %} {{ counterparty }}
+      &middot; {{ message.created_at|date:"j M Y, H:i" }}
+    </div>
+    <h1>{{ title }}</h1>
+  </div>
+  <div class="actions">
+    {% if can_reply %}<a class="btn" href="{% url 'message_to' counterparty %}">Reply</a>{% endif %}
+    <a class="btn-ghost" href="{% url 'messages_inbox' %}">Inbox</a>
+  </div>
 </div>
 
-<div class="card">
-  <div class="card-head">
-    <div class="muted">From</div>
-    <div class="user-chip">
-      <span class="avatar">{{ from|slice:":1"|upper }}</span>
-      <span class="uname">{{ from }}</span>
+<div class="dash">
+  <article class="card col-8 is-verified">
+    <div class="card-head">
+      <span class="badge verified">Integrity verified</span>
+      {% if message.is_anonymous %}<span class="badge plain">Sent anonymously</span>{% endif %}
     </div>
-    <div style="margin-left:auto">
-      {% if mac_ok %}
-        <span class="badge ok" title="MAC OK">MAC OK</span>
-      {% else %}
-        <span class="badge fail" title="MAC FAILED">MAC FAILED</span>
+    <div class="card-body"><div class="prose">{{ body }}</div></div>
+  </article>
+
+  <aside class="card col-4">
+    <div class="card-head"><h2>How it reached you</h2></div>
+    <div class="card-body">
+      <dl class="kv">
+        <dt>Body</dt><dd>AES-256-GCM</dd>
+        <dt>Session key</dt><dd>RSA-2048-OAEP, {{ wrapped_len }} bytes</dd>
+        <dt>Row MAC</dt><dd>HMAC-SHA256</dd>
+      </dl>
+      {% if fingerprint %}
+        <p class="small muted" style="margin-top: var(--s5)">{{ counterparty }} key fingerprint:</p>
+        <div class="fingerprint">{{ fingerprint }}</div>
       {% endif %}
     </div>
-  </div>
-
-  <div class="card-body">
-    <pre class="readbox">{{ body }}</pre>
-  </div>
-
-  <div class="card-foot muted">
-    Delivered: {{ created_at|date:"M d, Y · H:i" }}
-  </div>
+  </aside>
 </div>
-
 {% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Security Lab · SafeBook{% endblock %}
+{% block content %}
+<div class="lab-hero">
+  <div class="eyebrow" style="color: rgba(255,255,255,.75)">Security Lab</div>
+  <h1>Five claims, and the experiment for each</h1>
+  <p>Every page here runs on throwaway keys generated when you open it. Nothing in the lab
+    reads a real account, and nothing it does is written to the database.</p>
+</div>
+
+<div class="grid grid-3">
+  <a class="lab-card" href="{% url 'lab_modes' %}">
+    <div class="n">01 / BLOCK MODES</div>
+    <h3>ECB does not hide a picture</h3>
+    <p>The same image through ECB, CBC and GCM, with the count of repeated blocks under each.</p>
+  </a>
+  <a class="lab-card" href="{% url 'lab_nonce' %}">
+    <div class="n">02 / NONCE REUSE</div>
+    <h3>One repeated nonce, both messages lost</h3>
+    <p>Encrypt two texts under one key and nonce, then recover one from the other with XOR alone.</p>
+  </a>
+  <a class="lab-card" href="{% url 'lab_timing' %}">
+    <div class="n">03 / TIMING</div>
+    <h3>Comparing a MAC with ==</h3>
+    <p>How long the comparison takes against how many bytes were right, measured live.</p>
+  </a>
+  <a class="lab-card" href="{% url 'lab_kdf' %}">
+    <div class="n">04 / PASSWORD STORAGE</div>
+    <h3>Guesses per second</h3>
+    <p>MD5, SHA-256, scrypt and Argon2id timed on this machine, and what the gap costs an attacker.</p>
+  </a>
+  <a class="lab-card" href="{% url 'lab_tamper' %}">
+    <div class="n">05 / TAMPERING</div>
+    <h3>Flip one bit</h3>
+    <p>Change a single byte of stored ciphertext and watch both the MAC and the GCM tag refuse it.</p>
+  </a>
+</div>
+{% endblock %}

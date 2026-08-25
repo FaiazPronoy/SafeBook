@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Recover access · SafeBook{% endblock %}
+{% block content %}
+<div class="auth auth-wide">
+  <div class="card">
+    <div class="card-body">
+      <div class="eyebrow">Recovery</div>
+      <h1>Use your recovery code</h1>
+      <p class="muted small">The code unwraps the same data key your password did. Setting a new
+        password re-wraps that key &mdash; your posts and messages are not touched, because the key
+        inside the envelope never changed.</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" %}
+        <button class="btn" type="submit" style="width:100%">Unlock and set a new password</button>
+      </form>
+
+      <div class="note amber" style="margin-top: var(--s5)">
+        <span>Without the code there is nothing to do here. Nobody who runs SafeBook can
+          reset a password on your behalf, because resetting it would not open your data.</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

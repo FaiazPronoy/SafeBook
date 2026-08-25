@@ -1,40 +1,51 @@
 {% extends "base.html" %}
-{% block title %}New Message · SafeBook App{% endblock %}
+{% block title %}New message · SafeBook{% endblock %}
 {% block content %}
-
 <div class="page-head">
-  <h1>New Message</h1>
-  <a class="btn-ghost" href="{% url 'messages_inbox' %}">← Back to Inbox</a>
+  <div>
+    <div class="eyebrow">New message</div>
+    <h1>Seal it for one person</h1>
+  </div>
 </div>
 
-<div class="card">
-  <form method="post" class="auth-form" novalidate style="padding:16px">
-    {% csrf_token %}
-    <div class="form-grid-2">
-      <div class="form-control">
-        <label for="to">To (username)</label>
-        <input id="to" name="to" class="input" placeholder="recipient_username" required autocomplete="off" autocapitalize="none" spellcheck="false">
+<div class="dash">
+  <section class="card col-7">
+    <div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" %}
+        <div class="actions">
+          <button class="btn" type="submit">Seal and send</button>
+          <a class="btn-ghost" href="{% url 'messages_inbox' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <aside class="card col-5 {% if recipient %}is-verified{% endif %}">
+    <div class="card-head">
+      <h2>{% if recipient %}Check the key first{% else %}How this is sealed{% endif %}</h2>
+    </div>
+    <div class="card-body">
+      {% if recipient %}
+        <p class="small muted">This is the fingerprint SafeBook holds for
+          <b>{{ recipient.username }}</b>. Read it back to them somewhere that is not SafeBook
+          before you send anything that matters.</p>
+        <div class="fingerprint">{{ recipient.key_fingerprint }}</div>
+      {% else %}
+        <ol class="small muted" style="padding-left: 1.1rem; line-height: 1.9">
+          <li>A fresh 256 bit session key is drawn for this message.</li>
+          <li>AES-256-GCM encrypts the subject and the body with it.</li>
+          <li>RSA-2048 with OAEP wraps that session key for the recipient.</li>
+          <li>Unless you send anonymously it is wrapped again for you, so the
+              message stays readable in your Sent list.</li>
+        </ol>
+      {% endif %}
+      <div class="note amber" style="margin-top: var(--s4)">
+        <span><b>Anonymous</b> drops your name and your copy of the key, so you will not be
+          able to read the message afterwards either.</span>
       </div>
-      <div class="form-control">
-        <label for="title">Title</label>
-        <input id="title" name="title" class="input" placeholder="Subject" required>
-      </div>
     </div>
-
-    <div class="form-control">
-      <label for="body">Body</label>
-      <textarea id="body" name="body" class="input" rows="8" placeholder="Write your encrypted message..." required></textarea>
-    </div>
-
-    <label class="check-row">
-      <input type="checkbox" name="anonymous">
-      <span>Send as Anonymous</span>
-    </label>
-
-    <div class="form-actions">
-      <button class="btn-primary" type="submit">Send Securely</button>
-    </div>
-  </form>
+  </aside>
 </div>
-
 {% endblock %}

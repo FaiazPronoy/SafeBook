@@ -1,83 +1,78 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · SafeBook App{% endblock %}
+{% block title %}Dashboard · SafeBook{% endblock %}
 {% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Signed in as {{ user.username }}</div>
+    <h1>Your vault</h1>
+    <p class="muted">Your key was unwrapped from your password when you signed in.
+      Close this session and the server goes back to holding ciphertext it cannot open.</p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{% url 'post_new' %}">Write a post</a>
+    <a class="btn-ghost" href="{% url 'message_new' %}">Send a message</a>
+  </div>
+</div>
 
-<div class="dash-grid">
-  <!-- Profile / PII -->
-  <section class="card">
-    <header class="card-head">
-      <h2>Your Profile</h2>
-    </header>
-    <div class="card-body">
-      <div class="kv">
-        <span class="k">Email</span>
-        <span class="v">{{ email|default:", " }}</span>
-      </div>
-      <div class="kv">
-        <span class="k">Phone</span>
-        <span class="v">{{ phone|default:", " }}</span>
-      </div>
+<div class="grid grid-4" style="margin-bottom: var(--s5)">
+  <div class="stat"><div class="n brand">{{ private_count }}</div><div class="l">Private posts &mdash; only your password opens these</div></div>
+  <div class="stat"><div class="n amber">{{ public_count }}</div><div class="l">Public posts &mdash; the server holds a second key</div></div>
+  <div class="stat"><div class="n">{{ unread }}</div><div class="l">Unread messages</div></div>
+  <div class="stat"><div class="n">{{ sent_count }}</div><div class="l">Messages you have sent</div></div>
+</div>
+
+<div class="dash">
+  <section class="card col-8">
+    <div class="card-head">
+      <h2>Your posts</h2>
+      <span class="badge plain">{{ posts|length }} total</span>
     </div>
-
-  </section>
-
-  <!-- Quick actions -->
-  <section class="card">
-    <header class="card-head">
-      <h2>Quick Actions</h2>
-    </header>
-    <div class="quick-actions">
-      <a class="btn-primary" href="{% url 'post_new' %}">Write a New Post</a>
-      <a class="btn-ghost" href="{% url 'messages_inbox' %}">Open Inbox</a>
-    </div>
-  </section>
-  <!-- Posts -->
-  <section class="card span-2">
-    <header class="card-head">
-      <div class="page-head">
-        <h2>Your Posts</h2>
-        <span class="badge">{{ posts|length }}</span>
-      </div>
-    </header>
-
     {% if posts %}
       <ul class="list">
         {% for p in posts %}
-          <li class="list-row">
+          <li>
             <div>
-              <div class="list-title">
-                <a href="{% url 'post_detail' p.id %}">
-                  {{ p.title|default:"Untitled" }}
-                </a>
-              </div>
-              <div class="list-sub">
-                <time datetime="{{ p.created_at|date:'c' }}">
-                  {{ p.created_at|date:"M d, Y · H:i" }}
-                </time>
-
-                {% if p.is_public %}
-                  <span class="badge ok">Public</span>
-                {% else %}
-                  <span class="badge fail">Private</span>
-                {% endif %}
+              <div class="t"><a href="{% url 'post_detail' p.id %}">{{ p.title }}</a></div>
+              <div class="s">
+                <time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|date:"j M Y, H:i" }}</time>
+                {% if p.is_public %}<span class="badge public">Public</span>
+                {% else %}<span class="badge private">Private</span>{% endif %}
+                {% if not p.intact %}<span class="badge broken">Integrity check failed</span>{% endif %}
               </div>
             </div>
-            <div class="list-cta">
-              <a class="btn-ghost" href="{% url 'post_detail' p.id %}">View</a>
-              <a class="btn-primary small" href="{% url 'post_delete' p.id %}">Delete</a>
+            <div class="actions">
+              <a class="btn-ghost tiny" href="{% url 'post_detail' p.id %}">Open</a>
             </div>
           </li>
         {% endfor %}
       </ul>
+      {% if unreadable %}
+        <div class="card-foot">
+          <span class="badge broken">{{ unreadable }}</span>
+          rows did not pass their MAC and are not being shown. Nothing was silently repaired.
+        </div>
+      {% endif %}
     {% else %}
       <div class="empty">
-        <div class="empty-title">No posts yet</div>
-        <div class="empty-sub muted">Start by writing your first encrypted note.</div>
-        <a class="btn-primary" href="{% url 'post_new' %}">Create Post</a>
+        <h3>Nothing stored yet</h3>
+        <p>Write something. It is encrypted in this process before it reaches the database.</p>
+        <p><a class="btn" href="{% url 'post_new' %}">Write your first post</a></p>
       </div>
     {% endif %}
   </section>
 
-
-
+  <aside class="card col-4 is-verified">
+    <div class="card-head"><h2>Your messaging key</h2></div>
+    <div class="card-body">
+      <p class="small muted">Read this out to someone over a channel that is not SafeBook.
+        If their copy of it does not match, a key has been swapped somewhere between you.</p>
+      <div class="fingerprint">{{ fingerprint }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">SHA-256 of your RSA-2048 public key.</p>
+      <div class="actions">
+        <a class="btn-ghost tiny" href="{% url 'directory' %}">Compare with others</a>
+        <a class="btn-ghost tiny" href="{% url 'account' %}">Account</a>
+      </div>
+    </div>
+  </aside>
+</div>
 {% endblock %}

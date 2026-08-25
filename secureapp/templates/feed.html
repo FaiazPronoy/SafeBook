@@ -1,24 +1,40 @@
 {% extends "base.html" %}
+{% block title %}Public feed · SafeBook{% endblock %}
 {% block content %}
-<h1 class="page-title">Public Feed</h1>
-<ul class="item-list">
-  {% for it in items %}
-    <li class="feed-item">
-      <div class="feed-header">
-        <strong>{{ it.title }}</strong>
-        <div class="muted">by {{ it.author }}: {{ it.created_at|date:"M d, Y H:i" }}</div>
-      </div>
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Public feed</div>
+    <h1>Posts people chose to publish</h1>
+    <p class="muted">These are the only rows the server can open on its own, because their
+      authors handed it a second copy of the key. Anything not published stays shut.</p>
+  </div>
+</div>
 
-      {% if not it.mac_ok %}
-        <div class="warn">⚠ Integrity check failed</div>
-      {% endif %}
-
-      <p class="feed-body">{{ it.body|truncatechars:400 }}</p>
-
-
-    </li>
-  {% empty %}
-    <li>No public posts yet.</li>
-  {% endfor %}
-</ul>
+{% if items %}
+  <div class="grid grid-2">
+    {% for item in items %}
+      <article class="card is-public">
+        <div class="card-head">
+          <h2>{{ item.title }}</h2>
+          {% if item.mine %}<span class="badge plain">Yours</span>{% endif %}
+        </div>
+        <div class="card-body">
+          <p class="prose">{{ item.body|truncatechars:320 }}</p>
+        </div>
+        <div class="card-foot">
+          <span class="muted">{{ item.author }} &middot; {{ item.created_at|date:"j M Y" }}</span>
+          &nbsp;<a href="{% url 'post_detail' item.id %}">Read</a>
+          {% if not item.mine %}
+            &middot; <a href="{% url 'message_to' item.author %}">Message {{ item.author }}</a>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card"><div class="empty">
+    <h3>The feed is empty</h3>
+    <p>Nobody has published anything yet. A post is private until its author adds the second key.</p>
+  </div></div>
+{% endif %}
 {% endblock %}

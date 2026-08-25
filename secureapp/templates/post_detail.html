@@ -1,39 +1,50 @@
 {% extends "base.html" %}
-{% block title %}Post · SafeBook App{% endblock %}
+{% block title %}{{ title }} · SafeBook{% endblock %}
 {% block content %}
-
-<div class="card span-2" style="max-width: 900px; margin-inline:auto;">
-  <header class="card-head">
-    <div>
-      <h1 style="margin:0;">{{ title }}</h1>
-      <div class="muted" style="margin-top:.25rem;">
-        by <strong>{{ author|default:request.user.username }}</strong>
-        · {{ created_at|date:"M d, Y H:i" }}
-        {% if is_public %}
-          <span class="badge" style="margin-left:.5rem;">Public</span>
-        {% else %}
-          <span class="badge" style="margin-left:.5rem;">Private</span>
-        {% endif %}
-      </div>
+<div class="page-head">
+  <div>
+    <div class="eyebrow">
+      {{ author }} &middot; {{ post.created_at|date:"j M Y, H:i" }}
+      {% if post.is_public %}&middot; public{% else %}&middot; private{% endif %}
     </div>
-
-
-  </header>
-
-  <div class="card-body">
-    <article class="prose">
-      <pre style="white-space:pre-wrap; font:inherit; background:var(--panel); padding:1rem; border-radius:12px; line-height:1.6;">
-{{ body }}
-      </pre>
-    </article>
+    <h1>{{ title }}</h1>
   </div>
-
-  <footer class="card-foot" style="display:flex; gap:.5rem; justify-content:space-between; align-items:center;">
-    <div class="actions" style="display:flex; gap:.5rem;">
-      <a class="btn-ghost" href="{% url 'index' %}">← Back</a>
-
-    </div>
-  </footer>
+  <div class="actions">
+    {% if mine %}
+      <form method="post" action="{% url 'post_visibility' post.id %}">
+        {% csrf_token %}
+        <button class="btn-ghost" type="submit">
+          {% if post.is_public %}Take off the feed{% else %}Publish to the feed{% endif %}
+        </button>
+      </form>
+      <a class="btn-ghost" href="{% url 'post_delete' post.id %}">Delete</a>
+    {% endif %}
+  </div>
 </div>
 
+<div class="dash">
+  <article class="card col-8 {% if post.is_public %}is-public{% else %}is-private{% endif %}">
+    <div class="card-head">
+      <span class="badge verified">Integrity verified</span>
+      {% if post.is_public %}<span class="badge public">Public</span>
+      {% else %}<span class="badge private">Private</span>{% endif %}
+    </div>
+    <div class="card-body"><div class="prose">{{ body }}</div></div>
+  </article>
+
+  <aside class="card col-4">
+    <div class="card-head"><h2>As stored</h2></div>
+    <div class="card-body">
+      <p class="small muted">The first 24 bytes of the body as the database holds them,
+        out of {{ cipher_len }}.</p>
+      <div class="hex brand">{{ cipher_preview }}</div>
+      <dl class="kv" style="margin-top: var(--s5)">
+        <dt>Cipher</dt><dd>AES-256-GCM</dd>
+        <dt>Row MAC</dt><dd>HMAC-SHA256</dd>
+        <dt>Post key</dt><dd>wrapped for {% if post.is_public %}you and the server{% else %}you only{% endif %}</dd>
+        {% if post.key_public_kek_id %}<dt>Server KEK</dt><dd>generation {{ post.key_public_kek_id }}</dd>{% endif %}
+      </dl>
+    </div>
+  </aside>
+</div>
 {% endblock %}

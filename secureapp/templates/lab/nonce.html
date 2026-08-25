@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Nonce reuse · Security Lab{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 02</div>
+    <h1>One repeated nonce, both messages lost</h1>
+    <p class="muted">AES-GCM runs a counter mode underneath, which means it encrypts by XOR-ing
+      a keystream over the plaintext. Use the same key and nonce twice and the same keystream
+      comes out, so XOR-ing the two ciphertexts cancels it and leaves the two plaintexts XOR-ed
+      with each other. Knowing one of them hands you the other.</p>
+  </div>
+</div>
+
+<div class="dash">
+  <section class="card col-5">
+    <div class="card-head"><h2>Try your own</h2></div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label for="secret">The message being attacked</label>
+          <input class="input" id="secret" name="secret" value="{{ secret }}">
+        </div>
+        <div class="field">
+          <label for="known">A second message, which the attacker already knows</label>
+          <input class="input" id="known" name="known" value="{{ known }}">
+        </div>
+        <button class="btn" type="submit">Encrypt both with one nonce</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card col-7 is-broken">
+    <div class="card-head">
+      <h2>What the attacker does</h2>
+      <span class="badge broken">nonce reused</span>
+    </div>
+    <div class="card-body">
+      <p class="small muted">First ciphertext</p>
+      <div class="hex">{{ c1 }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">Second ciphertext</p>
+      <div class="hex">{{ c2 }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">XOR of the two &mdash; the keystream is gone</p>
+      <div class="hex brand">{{ xor_ct }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">XOR that with the message they knew:</p>
+      <div class="recovery-code" style="font-size: 1rem; letter-spacing: 0">{{ recovered }}</div>
+      {% if recovered_exactly %}
+        <div class="note brand" style="margin-top: var(--s4)">
+          <span>Recovered exactly, with no key and no attack on AES. The mistake was the nonce.</span>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="card col-12 is-verified">
+    <div class="card-head">
+      <h2>The same pair, with a fresh nonce each time</h2>
+      <span class="badge verified">what SafeBook does</span>
+    </div>
+    <div class="card-body">
+      <p class="small muted">Same key, same two messages, one new random nonce per message.
+        The identical attack now returns:</p>
+      <div class="hex">{{ junk_hex }}</div>
+      <p class="small muted" style="margin-top: var(--s3)">Every call to <code>aead_encrypt</code>
+        in this app draws 12 fresh random bytes, which is what makes this the boring answer
+        instead of the interesting one.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

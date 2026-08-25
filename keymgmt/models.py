@@ -1,17 +1,7 @@
-# keymgmt/models.py
-from django.db import models
-from django.conf import settings
-
-class KeyEnvelope(models.Model):
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="key_envelope",
-    )
-    wrapped_dek = models.BinaryField()
-    kek_id = models.IntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
-    rotated_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = "key_envelopes"
+# The server's own key material has no per-user rows any more: a user's
+# private DEK is held by their password, and the only thing the server KEK
+# wraps is the content key of each public post, which lives on the post.
+#
+# The app is kept for what it still owns - reading and validating the KEK,
+# and the rotation command that re-wraps every public post key when the KEK
+# changes.

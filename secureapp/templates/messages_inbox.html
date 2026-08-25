@@ -1,45 +1,44 @@
 {% extends "base.html" %}
-{% block title %}Inbox · SafeBook App{% endblock %}
+{% block title %}Inbox · SafeBook{% endblock %}
 {% block content %}
-
 <div class="page-head">
-  <h1>Inbox</h1>
-  <a class="btn-primary" href="{% url 'message_new' %}">+ New Message</a>
+  <div>
+    <div class="eyebrow">Inbox</div>
+    <h1>Sealed for you</h1>
+    <p class="muted">Each one carries a session key wrapped with your public key. Your private
+      key is itself encrypted with your data key, so opening these needs your password and
+      nothing less.</p>
+  </div>
+  <div class="actions">
+    <a class="btn" href="{% url 'message_new' %}">New message</a>
+    <a class="btn-ghost" href="{% url 'messages_sent' %}">Sent</a>
+  </div>
 </div>
 
-{% if inbox %}
-  <div class="card">
+<section class="card">
+  {% if inbox %}
     <ul class="list">
       {% for m in inbox %}
-        <li class="list-row">
-          <div class="list-meta">
-            <div class="list-title">
-              <a href="{% url 'message_detail' m.id %}">{{ m.title }}</a>
-            </div>
-            <div class="list-sub muted">
-              from <strong>{{ m.from }}</strong> · {{ m.created_at|date:"M d, Y · H:i" }}
+        <li class="{% if m.unread %}unread{% endif %}">
+          <div>
+            <div class="t"><a href="{% url 'message_detail' m.id %}">{{ m.title }}</a></div>
+            <div class="s">
+              from <b>{{ m.sender }}</b>
+              &middot; <time datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:"j M Y, H:i" }}</time>
+              {% if m.unread %}<span class="badge public">Unread</span>{% endif %}
+              {% if not m.intact %}<span class="badge broken">Integrity check failed</span>{% endif %}
             </div>
           </div>
-          <div class="list-cta">
-            {% if m.mac_ok %}
-              <span class="badge ok" title="MAC OK">MAC OK</span>
-            {% else %}
-              <span class="badge fail" title="MAC FAILED">MAC FAILED</span>
-            {% endif %}
-            <a class="link" href="{% url 'message_detail' m.id %}">Open</a>
-          </div>
+          <a class="btn-ghost tiny" href="{% url 'message_detail' m.id %}">Open</a>
         </li>
       {% endfor %}
     </ul>
-  </div>
-{% else %}
-  <div class="card">
+  {% else %}
     <div class="empty">
-      <div class="empty-title">No messages yet</div>
-      <div class="empty-sub muted">Your encrypted inbox is quiet. Send one to test!</div>
-      <a class="btn-primary" href="{% url 'message_new' %}">Compose message</a>
+      <h3>No messages</h3>
+      <p>Nothing has been sealed for your key yet.</p>
+      <p><a class="btn" href="{% url 'directory' %}">Find someone to write to</a></p>
     </div>
-  </div>
-{% endif %}
-
+  {% endif %}
+</section>
 {% endblock %}

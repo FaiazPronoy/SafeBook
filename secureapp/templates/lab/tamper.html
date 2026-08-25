@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Tampering · Security Lab{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 05</div>
+    <h1>Flip one bit</h1>
+    <p class="muted">A row is encrypted the way SafeBook encrypts a post. Then one byte of the
+      ciphertext is changed, as someone with write access to the database could. Both checks
+      run against the altered bytes.</p>
+  </div>
+</div>
+
+<div class="dash">
+  <section class="card col-5">
+    <div class="card-head"><h2>Set up the row</h2></div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label for="text">Text to store</label>
+          <input class="input" id="text" name="text" value="{{ text }}">
+        </div>
+        <div class="field">
+          <label for="byte">Which byte to flip (0 to {{ ct_len|add:"-1" }})</label>
+          <input class="input" id="byte" name="byte" value="{{ byte }}" inputmode="numeric">
+        </div>
+        <button class="btn" type="submit">Encrypt, then flip that byte</button>
+      </form>
+
+      <p class="small muted" style="margin-top: var(--s5)">Stored ciphertext</p>
+      <div class="hex">{{ ct_hex }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">After flipping byte {{ byte }}</p>
+      <div class="hex brand">{{ tampered_hex }}</div>
+    </div>
+  </section>
+
+  <section class="card col-7">
+    <div class="card-head"><h2>What the checks say</h2></div>
+    <div class="card-body">
+      {% for step in steps %}
+        <div class="check-row">
+          <span class="mark {% if step.ok %}pass{% else %}fail{% endif %}">
+            {% if step.ok %}&check;{% else %}&times;{% endif %}
+          </span>
+          <div>
+            <div style="font-weight:600">{{ step.step }}</div>
+            <div class="small muted">{{ step.detail }}</div>
+          </div>
+          <span class="badge {% if step.ok %}verified{% else %}broken{% endif %}" style="margin-left:auto">
+            {% if step.ok %}accepted{% else %}rejected{% endif %}
+          </span>
+        </div>
+      {% endfor %}
+
+      <div class="note verified" style="margin-top: var(--s5)">
+        <span>In SafeBook a row that fails either check is not shown at all &mdash; the view
+          redirects and says so. Displaying the content with a warning beside it would mean
+          the check was decoration.</span>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Block modes · Security Lab{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 01</div>
+    <h1>ECB does not hide a picture</h1>
+    <p class="muted">The same {{ blocks }} blocks of greyscale, encrypted three ways with the
+      same AES key. ECB maps every identical block to the same ciphertext, so the flat areas of
+      the picture stay flat and the shape survives. Reload for fresh keys.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <div class="shots">
+      {% for panel in panels %}
+        <figure class="shot" style="margin:0">
+          <img src="{{ panel.img }}" alt="{{ panel.name }}" width="96" height="96">
+          <figcaption>
+            <div class="name">{{ panel.name }}</div>
+            <span class="note">{{ panel.note }}</span>
+            <span class="badge {% if panel.repeats %}broken{% else %}verified{% endif %}"
+                  style="margin-top:6px">{{ panel.repeats }} repeated blocks</span>
+          </figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card-foot muted">
+    The picture has large flat areas, so the plaintext itself repeats blocks. ECB keeps that
+    count almost exactly &mdash; that is the leak. CBC and GCM chain or counter each block, so
+    two identical inputs land on different outputs and the count drops to nothing.
+  </div>
+</div>
+{% endblock %}

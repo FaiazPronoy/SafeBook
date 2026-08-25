@@ -1,66 +1,32 @@
-from .models import KeyEnvelope
-from secureapp.keymgmt import generate_dek, wrap_dek, unwrap_dek
+"""Reading and checking the server KEK.
+
+The KEK never leaves this process and never touches the database. It comes
+from the environment, wraps the content key of every public post, and can be
+replaced without re-encrypting a single post - see `rotate_kek`.
+"""
+
 import base64
+
 from django.conf import settings
-from secureapp.crypto import wrap_dek_with_kek, unwrap_dek_with_kek  # AES-GCM helpers
+
+VALID_KEY_SIZES = (16, 24, 32)
 
 
-def create_key_envelope_for_user(user, *, kek_id=1, force=False):
-
-    if not force:
-        try:
-            return user.key_envelope
-        except KeyEnvelope.DoesNotExist:
-            pass
-
-    dek = generate_dek()
-    wrapped = wrap_dek(dek)
-    env, _ = KeyEnvelope.objects.update_or_create(
-        user=user,
-        defaults={"wrapped_dek": wrapped, "kek_id": kek_id},
-    )
-    return env
-
-def get_user_dek(user):
-
-    try:
-        env = user.key_envelope
-    except KeyEnvelope.DoesNotExist:
-        env = create_key_envelope_for_user(user)
-    return unwrap_dek(env.wrapped_dek)
-
-
-def get_active_kek():
-
+def get_active_kek() -> tuple[bytes, int]:
+    """The KEK in use right now, and the id recorded alongside what it wraps."""
     b64 = getattr(settings, "APP_KEK_BASE64", None)
     if not b64:
-        raise RuntimeError("APP_KEK_BASE64 is not set. Configure it in your env/.env.")
-
+        raise RuntimeError(
+            "APP_KEK_BASE64 is not set. Copy .env.example to .env and put a "
+            "fresh key in it - `python manage.py new_kek` prints one."
+        )
     try:
-        kek = base64.b64decode(b64)
-    except Exception as e:
-        raise RuntimeError("APP_KEK_BASE64 is not valid base64.") from e
+        kek = base64.b64decode(b64, validate=True)
+    except Exception as exc:
+        raise RuntimeError("APP_KEK_BASE64 is not valid base64.") from exc
 
-    if len(kek) not in (16, 24, 32):
-        # We prefer 32 bytes for AES-256
-        raise RuntimeError(f"APP_KEK_BASE64 decoded to {len(kek)} bytes; expected 16/24/32 (32 recommended).")
-
-    kek_id = getattr(settings, "KEYMGMT_ACTIVE_KEK_ID", "default")
-    return kek, str(kek_id)
-
-def wrap_dek(dek: bytes, kek: bytes | None = None) -> bytes:
-    """
-    Wrap (encrypt) a DEK using the provided KEK; falls back to active KEK.
-    """
-    if kek is None:
-        kek, _ = get_active_kek()
-    return wrap_dek_with_kek(dek, kek)
-
-def unwrap_dek(wrapped: bytes, kek: bytes | None = None) -> bytes:
-    """
-    Unwrap (decrypt) a DEK using the provided KEK; falls back to active KEK.
-    """
-    if kek is None:
-        kek, _ = get_active_kek()
-    return unwrap_dek_with_kek(wrapped, kek)
-
+    if len(kek) not in VALID_KEY_SIZES:
+        raise RuntimeError(
+            f"APP_KEK_BASE64 decodes to {len(kek)} bytes; AES needs 16, 24 or 32."
+        )
+    return kek, int(getattr(settings, "KEYMGMT_ACTIVE_KEK_ID", 1))
