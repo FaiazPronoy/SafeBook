@@ -1,0 +1,16 @@
+# secrets - the KEK lives here, it must never be committed
+.env
+
+# local database
+db.sqlite3
+
+# virtualenv
+.venv/
+venv/
+
+__pycache__/
+*.py[cod]
+
+# editor
+.vscode/
+.idea/

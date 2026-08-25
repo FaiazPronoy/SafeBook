@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Inbox · SafeBook App{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Inbox</h1>
+  <a class="btn-primary" href="{% url 'message_new' %}">+ New Message</a>
+</div>
+
+{% if inbox %}
+  <div class="card">
+    <ul class="list">
+      {% for m in inbox %}
+        <li class="list-row">
+          <div class="list-meta">
+            <div class="list-title">
+              <a href="{% url 'message_detail' m.id %}">{{ m.title }}</a>
+            </div>
+            <div class="list-sub muted">
+              from <strong>{{ m.from }}</strong> · {{ m.created_at|date:"M d, Y · H:i" }}
+            </div>
+          </div>
+          <div class="list-cta">
+            {% if m.mac_ok %}
+              <span class="badge ok" title="MAC OK">MAC OK</span>
+            {% else %}
+              <span class="badge fail" title="MAC FAILED">MAC FAILED</span>
+            {% endif %}
+            <a class="link" href="{% url 'message_detail' m.id %}">Open</a>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="empty">
+      <div class="empty-title">No messages yet</div>
+      <div class="empty-sub muted">Your encrypted inbox is quiet. Send one to test!</div>
+      <a class="btn-primary" href="{% url 'message_new' %}">Compose message</a>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
