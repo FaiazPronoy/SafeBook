@@ -36,11 +36,5 @@ def unwrap_key(blob: bytes, wrapping_key: bytes, aad: bytes = AAD_DEK_WRAP) -> b
     return aead_decrypt(wrapping_key, blob[:NONCE_LEN], blob[NONCE_LEN:], aad)
 
 
-# the old names, kept because the KEK rotation command and the key envelope
-# service both read better with them
-wrap_dek_with_kek = wrap_key
-unwrap_dek_with_kek = unwrap_key
-
-
 def new_key() -> bytes:
     return os.urandom(KEY_LEN)

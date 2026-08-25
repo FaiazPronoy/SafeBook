@@ -1,30 +1,29 @@
 """Which key protects what.
 
-SafeBook keeps two data keys per user, because two different things are
-being defended against.
+Two keys are in play, and they answer to two different people.
 
-    private DEK   unwrapped only by the user's password (scrypt) or their
-                  recovery code. Protects the things the server has no
-                  business reading: email, phone, the RSA private key, the
-                  contents of private posts and of messages. Nobody holding
-                  the database and the .env file can read any of it.
+    the private DEK   opens only for the user's password, run through
+                      scrypt, or for their recovery code. It protects the
+                      things the server has no business reading: email,
+                      phone, the RSA private key, and the content key of
+                      every private post. Somebody holding the database and
+                      the .env file together cannot read any of it.
 
-    public DEK    wrapped by the server KEK from .env, so the server can use
-                  it without the user present. Protects public posts, which
-                  have to be rendered for other people. The threat here is
-                  someone walking off with the database file, not the server
-                  operator.
+    the server KEK    lives in .env, so the server can use it with nobody
+                      signed in. It wraps the content key of a public post
+                      and nothing else, because a public post has to be
+                      rendered for people who are not its author. The threat
+                      it answers is someone walking off with the database
+                      file, not the person running the server.
 
-Every post gets its own random content key. That key is wrapped once for the
-author under the private DEK, and a second time under the server KEK when
-the post is public. Making a post public or private adds or removes a 60
-byte wrapped key and never re-encrypts the post itself - which is the whole
-reason for wrapping keys inside keys.
+Every post gets its own random content key. That key is wrapped for the
+author under their DEK, and wrapped a second time under the server KEK when
+the post is public. Publishing or unpublishing adds or drops one 60 byte
+wrapped key and never re-encrypts the post - which is the whole reason for
+wrapping keys inside other keys.
 """
 
-import base64
-
-from django.conf import settings
+from keymgmt.services import get_active_kek
 
 from .crypto import new_key, unwrap_key, wrap_key
 from .pwdwrap import derive_wrapping_key, new_salt
@@ -36,12 +35,7 @@ AAD_POST_KEY_PUBLIC = b"envelope/post-key/public"
 
 
 def server_kek() -> bytes:
-    kek = base64.b64decode(settings.APP_KEK_BASE64)
-    if len(kek) not in (16, 24, 32):
-        raise RuntimeError(
-            f"APP_KEK_BASE64 decodes to {len(kek)} bytes; it must be 16, 24 or 32."
-        )
-    return kek
+    return get_active_kek()[0]
 
 
 # --- the private DEK, held by the password -----------------------------
