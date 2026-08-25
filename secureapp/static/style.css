@@ -32,13 +32,22 @@
   --danger: #d92b2b;
   --danger-soft: #ffe2e2;
 
+  /* small type on a tinted chip needs more than the stroke colour has */
+  --brand-ink: #b00d49;
+  --amber-ink: #8a4f00;
+  --verified-ink: #07684e;
+  --danger-ink: #a81b1b;
+
+  /* what sits on top of a filled brand surface */
+  --on-brand: #ffffff;
+
   --bg: #fbf7f8;
   --bg-tint: #f3eaee;
   --panel: #ffffff;
   --panel-2: #fdf9fa;
   --ink: #1b1420;
   --ink-2: #4a3f52;
-  --muted: #7c7085;
+  --muted: #6b5f74;
   --line: #ebdfe5;
   --line-strong: #dcccd5;
 
@@ -59,6 +68,15 @@ html[data-theme="dark"] {
   --verified-soft: #10352c;
   --danger: #ff6b6b;
   --danger-soft: #3b1518;
+
+  --brand-ink: #ff4d8d;
+  --amber-ink: #ffb020;
+  --verified-ink: #2fd6a5;
+  --danger-ink: #ff6b6b;
+
+  /* the dark palette's pink is bright enough that white type on it is thin;
+     dark type on it reads better and passes the contrast check */
+  --on-brand: #1b0d14;
 
   --bg: #141019;
   --bg-tint: #1b1522;
@@ -199,7 +217,7 @@ code, .mono, pre { font-family: var(--mono); font-size: .85em; }
   width: 24px; height: 24px;
   display: grid; place-items: center;
   border-radius: 50%;
-  background: var(--brand); color: #fff;
+  background: var(--brand); color: var(--on-brand);
   font-family: var(--display); font-size: .74rem; font-weight: 600;
 }
 
@@ -289,8 +307,8 @@ main.container { padding-block: var(--s6) var(--s8); }
   color: var(--ink);
 }
 .stat .n.brand { color: var(--brand); }
-.stat .n.amber { color: var(--amber); }
-.stat .n.verified { color: var(--verified); }
+.stat .n.amber { color: var(--amber-ink); }
+.stat .n.verified { color: var(--verified-ink); }
 .stat .l {
   margin-top: var(--s2);
   font-size: .82rem; color: var(--muted);
@@ -307,10 +325,10 @@ main.container { padding-block: var(--s6) var(--s8); }
   border: 1px solid transparent;
   white-space: nowrap;
 }
-.badge.private { background: var(--brand-soft); color: var(--brand-strong); border-color: var(--brand); }
-.badge.public { background: var(--amber-soft); color: var(--amber); border-color: var(--amber); }
-.badge.verified { background: var(--verified-soft); color: var(--verified); border-color: var(--verified); }
-.badge.broken { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.badge.private { background: var(--brand-soft); color: var(--brand-ink); border-color: var(--brand); }
+.badge.public { background: var(--amber-soft); color: var(--amber-ink); border-color: var(--amber); }
+.badge.verified { background: var(--verified-soft); color: var(--verified-ink); border-color: var(--verified); }
+.badge.broken { background: var(--danger-soft); color: var(--danger-ink); border-color: var(--danger); }
 .badge.plain { background: var(--bg-tint); color: var(--muted); border-color: var(--line); }
 
 /* ---------------------------------------------------------------- buttons */
@@ -327,8 +345,8 @@ main.container { padding-block: var(--s6) var(--s8); }
 }
 .btn:active, .btn-ghost:active, .btn-quiet:active { transform: translateY(1px); }
 
-.btn { background: var(--brand); color: #fff; }
-.btn:hover { background: var(--brand-strong); color: #fff; }
+.btn { background: var(--brand); color: var(--on-brand); }
+.btn:hover { background: var(--brand-strong); color: var(--on-brand); }
 
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 .btn-ghost:hover { background: var(--bg-tint); color: var(--ink); }
@@ -336,7 +354,7 @@ main.container { padding-block: var(--s6) var(--s8); }
 .btn-quiet { background: transparent; color: var(--muted); padding-inline: 11px; }
 .btn-quiet:hover { color: var(--brand); background: var(--bg-tint); }
 
-.btn.danger { background: var(--danger); }
+.btn.danger { background: var(--danger); color: var(--on-brand); }
 .btn.danger:hover { background: var(--danger); filter: brightness(.92); }
 .btn.tiny, .btn-ghost.tiny { padding: 5px 12px; font-size: .82rem; }
 
@@ -450,9 +468,9 @@ textarea.input { line-height: 1.6; resize: vertical; }
   background: var(--panel-2);
   font-size: .88rem;
 }
-.note.brand { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-strong); }
-.note.amber { border-color: var(--amber); background: var(--amber-soft); color: var(--amber); }
-.note.verified { border-color: var(--verified); background: var(--verified-soft); color: var(--verified); }
+.note.brand { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); }
+.note.amber { border-color: var(--amber); background: var(--amber-soft); color: var(--amber-ink); }
+.note.verified { border-color: var(--verified); background: var(--verified-soft); color: var(--verified-ink); }
 .note b { font-weight: 600; }
 
 .flashes { list-style: none; margin: var(--s5) 0 0; padding: 0; display: grid; gap: var(--s2); }
@@ -464,9 +482,9 @@ textarea.input { line-height: 1.6; resize: vertical; }
   box-shadow: var(--shadow-1);
   font-size: .9rem;
 }
-.flashes li.success { border-color: var(--verified); background: var(--verified-soft); color: var(--verified); }
-.flashes li.error { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
-.flashes li.info { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-strong); }
+.flashes li.success { border-color: var(--verified); background: var(--verified-soft); color: var(--verified-ink); }
+.flashes li.error { border-color: var(--danger); background: var(--danger-soft); color: var(--danger-ink); }
+.flashes li.info { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); }
 
 /* ---------------------------------------------------------------- prose */
 
@@ -561,8 +579,8 @@ td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-alig
   display: grid; place-items: center;
   border-radius: 50%; font-weight: 700; font-size: .95rem;
 }
-.check-row .mark.pass { background: var(--verified-soft); color: var(--verified); }
-.check-row .mark.fail { background: var(--danger-soft); color: var(--danger); }
+.check-row .mark.pass { background: var(--verified-soft); color: var(--verified-ink); }
+.check-row .mark.fail { background: var(--danger-soft); color: var(--danger-ink); }
 
 /* ---------------------------------------------------------------- footer */
 
