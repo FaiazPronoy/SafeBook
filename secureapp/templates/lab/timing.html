@@ -7,8 +7,10 @@
     <h1>How long it took is an answer too</h1>
     <p class="muted">A verifier that stops at the first wrong byte takes longer when more of the
       guess was right. That is enough to find a 32 byte MAC one byte at a time, without ever
-      guessing the whole thing. Three ways of comparing the same bytes, each the median of
-      thirteen runs of {{ rounds }} comparisons.</p>
+      guessing the whole thing. Three ways of comparing the same bytes. Each figure is the
+      <b>fastest</b> of thirteen runs of {{ rounds }} comparisons, not the average &mdash;
+      anything else running on this machine can only add time, so the smallest number is the
+      closest thing to the cost of the comparison on its own.</p>
   </div>
 </div>
 

@@ -9,7 +9,6 @@ import base64
 import hashlib
 import hmac
 import os
-import statistics
 import struct
 import time
 
@@ -167,23 +166,31 @@ def timing_view(request):
                 return False
         return True
 
-    def median_ns(compare, guess):
+    def fastest_ns(compare, guess):
+        """The quickest of thirteen runs, not the average of them.
+
+        Anything else happening on the machine can only add time to a run,
+        never take it away, so the smallest number is the closest thing to
+        the cost of the comparison by itself. Averaging would fold the
+        machine being busy into the answer, and on a laptop that noise is
+        larger than the effect being measured.
+        """
         samples = []
         for _ in range(13):
             start = time.perf_counter_ns()
             for _ in range(rounds):
                 compare(guess, secret)
             samples.append((time.perf_counter_ns() - start) / rounds)
-        return statistics.median(samples)
+        return min(samples)
 
     rows = []
     for prefix in (0, 8, 16, 24, 31):
         guess = secret[:prefix] + bytes(32 - prefix)
         rows.append({
             "prefix": prefix,
-            "loop": median_ns(hand_written, guess),
-            "eq": median_ns(lambda a, b: a == b, guess),
-            "safe": median_ns(hmac.compare_digest, guess),
+            "loop": fastest_ns(hand_written, guess),
+            "eq": fastest_ns(lambda a, b: a == b, guess),
+            "safe": fastest_ns(hmac.compare_digest, guess),
         })
 
     scale = max(r["loop"] for r in rows) or 1

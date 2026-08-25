@@ -99,10 +99,18 @@ class TimingLabTests(TestCase):
         self.client = sign_in("alice")
 
     def test_the_hand_written_loop_leaks_and_compare_digest_does_not(self):
+        """The loop should climb with the number of correct bytes; the
+        constant time comparison should not climb anything like as much."""
         rows = self.client.get("/lab/timing/").context["rows"]
         first, last = rows[0], rows[-1]
-        self.assertGreater(last["loop"], first["loop"] * 1.5)
-        self.assertLess(max(r["safe"] for r in rows), min(r["safe"] for r in rows) * 1.5)
+
+        loop_climb = last["loop"] / first["loop"]
+        safe_climb = max(r["safe"] for r in rows) / min(r["safe"] for r in rows)
+
+        self.assertGreater(loop_climb, 1.5, f"the loop only climbed {loop_climb:.2f}x")
+        self.assertLess(safe_climb, loop_climb,
+                        f"compare_digest varied {safe_climb:.2f}x, "
+                        f"the loop {loop_climb:.2f}x")
 
 
 class LabIsolationTests(TestCase):

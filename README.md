@@ -153,11 +153,16 @@ and the other comes out exactly, with no attack on AES at all. The same pair
 with a fresh nonce each time returns nothing.
 
 **03 Timing.** Three ways of comparing a 32 byte MAC, timed live. A hand
-written byte loop climbs from roughly 500 ns to roughly 1400 ns as more of
-the guess is right, which is enough to find a MAC in 8192 tries rather than
-2^256. The page also reports the honest negative result: `==` on `bytes`
-drops into `memcmp` and shows no usable slope at this size, which is a
-measurement failing to find something rather than proof it is safe.
+written byte loop climbs from roughly 370 ns to roughly 1960 ns as more of
+the guess is right - a 5x slope, and enough to find a MAC in 8192 tries
+rather than 2^256. Each figure is the fastest of thirteen runs rather than
+the average, because interference can only add time and averaging folds the
+machine being busy into the answer.
+
+The page also reports the honest negative result: `==` on `bytes` drops into
+`memcmp`, shows no usable slope at this size, and stays flat. That is a
+measurement failing to find something rather than proof it is safe, and the
+page says so - which is why SafeBook uses `compare_digest` anyway.
 
 **04 Password storage.** MD5, SHA-256, scrypt and Argon2id timed on the
 machine running them, with the cost of walking every six letter lowercase

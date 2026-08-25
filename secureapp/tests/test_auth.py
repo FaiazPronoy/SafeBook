@@ -43,19 +43,24 @@ class CredentialTests(TestCase):
         """Returning early for a missing user is how account lists get built.
 
         The hash has to run either way, so the two paths take the same time.
+        The fastest of several runs is the estimator here: it is the one the
+        machine being busy can only push upwards, never down. The bound is
+        loose on purpose - the regression this guards against was 191x, so
+        catching it does not need a tight threshold, and a tight one would
+        just fail on a laptop that is doing something else.
         """
-        def median_ms(username):
+        def fastest_ms(username):
             samples = []
             for _ in range(7):
                 start = time.perf_counter()
                 check_credentials(username, "Wrong#Password2026")
                 samples.append((time.perf_counter() - start) * 1000)
-            return statistics.median(samples)
+            return min(samples)
 
-        known = median_ms("alice")
-        unknown = median_ms("no_such_account_here")
+        known = fastest_ms("alice")
+        unknown = fastest_ms("no_such_account_here")
         ratio = max(known, unknown) / min(known, unknown)
-        self.assertLess(ratio, 2.0, f"known {known:.1f}ms vs unknown {unknown:.1f}ms")
+        self.assertLess(ratio, 2.5, f"known {known:.1f}ms vs unknown {unknown:.1f}ms")
 
 
 class LockoutTests(TestCase):
