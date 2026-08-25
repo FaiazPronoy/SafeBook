@@ -13,7 +13,7 @@ from .models import Account, LoginAttempt, Message, Post
 
 def _hex(value, limit=None):
     if not value:
-        return ", "
+        return "none"
     raw = bytes(value)
     text = raw.hex()
     if limit and len(raw) > limit:
@@ -59,7 +59,7 @@ class AccountAdmin(UserAdmin):
 
     @admin.display(description="Key fingerprint")
     def fingerprint_short(self, obj):
-        return obj.key_fingerprint[:19] or ", "
+        return obj.key_fingerprint[:19] or "none"
 
     pdek_wrapped_hex = CipherColumn.make("pdek_wrapped", "Private DEK, wrapped by the password")
     rec_wrapped_hex = CipherColumn.make("rec_wrapped", "Private DEK, wrapped by the recovery code")

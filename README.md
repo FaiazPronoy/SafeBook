@@ -136,23 +136,29 @@ there was no `.gitignore`, so a live `.env` and the database were one
 
 ---
 
-## Security Lab
+## How it works, in the app
 
-Five pages under `/lab/`, each running the experiment for one thing this app
-claims. All of them use throwaway keys made when the page loads, and none of
+The app itself never lectures anyone. No page shows an algorithm name, and
+the footer says nothing about what any of this is for. What a person sees is
+"locked with a key only your password opens", and a small question mark
+beside it. Clicking that opens one short explanation in plain words, with a
+folded-away paragraph underneath for anyone who wants the real names.
+
+Behind those, `/lab/` is a set of five pages that run the experiment for one
+claim each. They use throwaway keys made when the page loads, and none of
 them touch a real account.
 
-**01 Block modes.** The same drawn padlock through ECB, CBC and GCM, with
+**Block modes.** The same drawn padlock through ECB, CBC and GCM, with
 repeated 16 byte blocks counted under each. The plaintext has 544 and the ECB
 ciphertext has 544 as well, which is why the padlock is still visible in it.
 CBC and GCM have none.
 
-**02 Nonce reuse.** Two messages under one key and one nonce. XOR the
+**Nonce reuse.** Two messages under one key and one nonce. XOR the
 ciphertexts and the keystream cancels; XOR in the message you already knew
 and the other comes out exactly, with no attack on AES at all. The same pair
 with a fresh nonce each time returns nothing.
 
-**03 Timing.** Three ways of comparing a 32 byte MAC, timed live. A hand
+**Timing.** Three ways of comparing a 32 byte MAC, timed live. A hand
 written byte loop climbs from roughly 370 ns to roughly 1960 ns as more of
 the guess is right - a 5x slope, and enough to find a MAC in 8192 tries
 rather than 2^256. Each figure is the fastest of thirteen runs rather than
@@ -164,11 +170,11 @@ The page also reports the honest negative result: `==` on `bytes` drops into
 measurement failing to find something rather than proof it is safe, and the
 page says so - which is why SafeBook uses `compare_digest` anyway.
 
-**04 Password storage.** MD5, SHA-256, scrypt and Argon2id timed on the
+**Password storage.** MD5, SHA-256, scrypt and Argon2id timed on the
 machine running them, with the cost of walking every six letter lowercase
 password at each speed. Minutes against hundreds of days.
 
-**05 Tampering.** Flip any byte of a stored row and watch the row MAC and the
+**Tampering.** Flip any byte of a stored row and watch the row MAC and the
 GCM tag both refuse it, with the untouched row verifying beside them.
 
 ---

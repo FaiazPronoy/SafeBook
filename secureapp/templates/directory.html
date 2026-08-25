@@ -5,10 +5,10 @@
   <div>
     <div class="eyebrow">People</div>
     <h1>Everyone you can write to</h1>
-    <p class="muted">A fingerprint is a short stand-in for a public key. Comparing it out loud is
-      the one step in this app the software cannot do for you, and it is the step that catches
-      a server handing you the wrong key.</p>
+    <p class="muted">Each person has a safety number. Comparing it with them, away from
+      SafeBook, is how you know you are writing to the right account.</p>
   </div>
+  {% include "_explain.html" with topic="safety-number" label="What is a safety number?" %}
 </div>
 
 <div class="card is-verified" style="margin-bottom: var(--s5)">
@@ -31,7 +31,7 @@
 {% else %}
   <div class="card"><div class="empty">
     <h3>Nobody else yet</h3>
-    <p>Other accounts appear here once they have a messaging key.</p>
+    <p>Other accounts will appear here once they exist.</p>
   </div></div>
 {% endif %}
 {% endblock %}

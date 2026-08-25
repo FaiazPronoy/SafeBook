@@ -27,7 +27,7 @@ class TamperedPostTests(TestCase):
         self._flip("body_ct")
         response = self.client.get(f"/posts/{self.post.id}/", follow=True)
         self.assertNotContains(response, "salary is 90000")
-        self.assertContains(response, "integrity check")
+        self.assertContains(response, "could not be opened")
 
     def test_a_flipped_body_is_dropped_from_the_feed(self):
         self._flip("body_ct")
@@ -79,7 +79,7 @@ class TamperedMessageTests(TestCase):
         self.message.save()
         response = self.reader.get(f"/messages/{self.message.id}/", follow=True)
         self.assertNotContains(response, "the door code is 8890")
-        self.assertContains(response, "integrity check")
+        self.assertContains(response, "could not be opened")
 
     def test_a_message_cannot_be_read_by_anyone_else(self):
         full_account("carol")

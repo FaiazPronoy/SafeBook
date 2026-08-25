@@ -1,38 +1,71 @@
 {% extends "base.html" %}
-{% block title %}Security Lab · SafeBook{% endblock %}
+{% block title %}How it works · SafeBook{% endblock %}
 {% block content %}
 <div class="lab-hero">
-  <div class="eyebrow" style="color: rgba(255,255,255,.75)">Security Lab</div>
-  <h1>Five claims, and the experiment for each</h1>
-  <p>Every page here runs on throwaway keys generated when you open it. Nothing in the lab
-    reads a real account, and nothing it does is written to the database.</p>
+  <div class="eyebrow" style="color: rgba(255,255,255,.78)">How it works</div>
+  <h1>Claims are easy. Here is the working.</h1>
+  <p>Any app can put a padlock in the corner and tell you it is safe. These pages let
+    you watch the difference for yourself, on data made up on the spot. Nothing here
+    touches a real account.</p>
 </div>
 
+<div class="grid grid-2" style="margin-bottom: var(--s6)">
+  <div class="card is-verified">
+    <div class="card-head"><h2>The short answer</h2></div>
+    <div class="card-body">
+      <p class="small">Your password builds the key to your notes. While you are signed
+        in, SafeBook can open them for you. When you are not, it holds nothing it can
+        read, and neither does anyone with access to the server.</p>
+      <p class="small">Sharing a note is the one thing that changes that, and only for
+        that note.</p>
+      <div class="actions">
+        {% include "_explain.html" with topic="vault" label="A little more detail" %}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h2>What we cannot do</h2></div>
+    <div class="card-body">
+      <p class="small">Nobody here can read your private notes, reset your password for
+        you, or recover your account without your recovery code. Those are the same
+        limitation seen from three sides, and they are the price of the first paragraph.</p>
+      <p class="small">While you are signed in, this server does see your notes in order
+        to show them to you. That is worth knowing.</p>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-bottom: var(--s4)">See it for yourself</h2>
 <div class="grid grid-3">
   <a class="lab-card" href="{% url 'lab_modes' %}">
-    <div class="n">01 / BLOCK MODES</div>
-    <h3>ECB does not hide a picture</h3>
-    <p>The same image through ECB, CBC and GCM, with the count of repeated blocks under each.</p>
+    <div class="n">01 / SCRAMBLING</div>
+    <h3>Why locking is not one thing</h3>
+    <p>The same picture locked three ways. One of them leaves the picture perfectly
+      visible, which is why the choice matters.</p>
   </a>
   <a class="lab-card" href="{% url 'lab_nonce' %}">
-    <div class="n">02 / NONCE REUSE</div>
-    <h3>One repeated nonce, both messages lost</h3>
-    <p>Encrypt two texts under one key and nonce, then recover one from the other with XOR alone.</p>
+    <div class="n">02 / REUSE</div>
+    <h3>What one repeated mistake costs</h3>
+    <p>Lock two messages the same way twice and one of them gives up the other, with
+      no key involved at all.</p>
   </a>
   <a class="lab-card" href="{% url 'lab_timing' %}">
-    <div class="n">03 / TIMING</div>
-    <h3>Comparing a MAC with ==</h3>
-    <p>How long the comparison takes against how many bytes were right, measured live.</p>
+    <div class="n">03 / SIDE CHANNELS</div>
+    <h3>Secrets that leak through a clock</h3>
+    <p>A check that gives the right answer can still give away how close a guess was.
+      Measured live, on this machine.</p>
   </a>
   <a class="lab-card" href="{% url 'lab_kdf' %}">
-    <div class="n">04 / PASSWORD STORAGE</div>
-    <h3>Guesses per second</h3>
-    <p>MD5, SHA-256, scrypt and Argon2id timed on this machine, and what the gap costs an attacker.</p>
+    <div class="n">04 / PASSWORDS</div>
+    <h3>How long a stolen list would last</h3>
+    <p>Four ways of storing a password, timed here and turned into the only number
+      that matters: guesses per second.</p>
   </a>
   <a class="lab-card" href="{% url 'lab_tamper' %}">
     <div class="n">05 / TAMPERING</div>
-    <h3>Flip one bit</h3>
-    <p>Change a single byte of stored ciphertext and watch both the MAC and the GCM tag refuse it.</p>
+    <h3>Changing one character</h3>
+    <p>Edit a single byte of stored text, the way somebody with database access could,
+      and watch both checks refuse it.</p>
   </a>
 </div>
 {% endblock %}

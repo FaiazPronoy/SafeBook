@@ -5,10 +5,9 @@
   <div class="card">
     <div class="card-body">
       <div class="eyebrow">Sign in</div>
-      <h1>Unlock your vault</h1>
-      <p class="muted small">Your password is checked against an Argon2id hash, and then used a
-        second time &mdash; run through scrypt to derive the key that opens your data. Neither
-        the password nor that key is ever stored.</p>
+      <h1>Welcome back</h1>
+      <p class="muted small">Your password unlocks your notes, so nobody here can sign in
+        as you or reset it for you.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
@@ -18,8 +17,11 @@
 
       <p class="small muted" style="margin-top: var(--s5)">
         No account? <a href="{% url 'register' %}">Create one</a>.
-        Lost your password? <a href="{% url 'recover' %}">Use your recovery code</a>.
+        Forgotten your password? <a href="{% url 'recover' %}">Use your recovery code</a>.
       </p>
+      <div style="margin-top: var(--s4)">
+        {% include "_explain.html" with topic="signin" label="How is sign-in protected?" %}
+      </div>
     </div>
   </div>
 </div>

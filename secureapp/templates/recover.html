@@ -1,14 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Recover access · SafeBook{% endblock %}
+{% block title %}Recover your account · SafeBook{% endblock %}
 {% block content %}
 <div class="auth auth-wide">
   <div class="card">
     <div class="card-body">
       <div class="eyebrow">Recovery</div>
       <h1>Use your recovery code</h1>
-      <p class="muted small">The code unwraps the same data key your password did. Setting a new
-        password re-wraps that key &mdash; your posts and messages are not touched, because the key
-        inside the envelope never changed.</p>
+      <p class="muted small">The code opens your account so you can set a new password.
+        Everything you have saved stays exactly where it is.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
@@ -17,8 +16,11 @@
       </form>
 
       <div class="note amber" style="margin-top: var(--s5)">
-        <span>Without the code there is nothing to do here. Nobody who runs SafeBook can
-          reset a password on your behalf, because resetting it would not open your data.</span>
+        <span>Without the code there is nothing anyone can do here. A reset by itself
+          would not open your notes, so nobody can offer you one.</span>
+      </div>
+      <div style="margin-top: var(--s4)">
+        {% include "_explain.html" with topic="recovery" label="Why is that?" %}
       </div>
     </div>
   </div>

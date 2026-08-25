@@ -55,6 +55,16 @@
   --shadow-2: 0 12px 34px rgba(45, 20, 40, .12);
   --ring: 0 0 0 3px rgba(216, 17, 89, .22);
 
+  --bloom-1: #ffc9dd;
+  --bloom-2: #ffe0b0;
+  --bloom-3: #e7d6ff;
+  --bloom-blur: 30px;
+  --bloom-opacity: .62;
+  --grid-line: rgba(94, 60, 88, .07);
+  --grid-opacity: 1;
+  --card-bg: rgba(255, 255, 255, .82);
+  --card-edge: rgba(255, 255, 255, .9);
+
   color-scheme: light;
 }
 
@@ -92,6 +102,16 @@ html[data-theme="dark"] {
   --shadow-2: 0 16px 40px rgba(0, 0, 0, .5);
   --ring: 0 0 0 3px rgba(255, 77, 141, .3);
 
+  --bloom-1: #8f1140;
+  --bloom-2: #7a4a06;
+  --bloom-3: #3b2a6d;
+  --bloom-blur: 46px;
+  --bloom-opacity: .5;
+  --grid-line: rgba(198, 168, 214, .055);
+  --grid-opacity: 1;
+  --card-bg: rgba(30, 24, 38, .78);
+  --card-edge: rgba(255, 255, 255, .06);
+
   color-scheme: dark;
 }
 
@@ -109,17 +129,38 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* a faint diagonal weave, the texture of something sealed */
+/* The page sits on three layers: a base colour, a bloom of colour drifting
+   across the top of it, and a fine grid over both. The grid is what stops a
+   large empty area from reading as a blank wall. */
 body::before {
+  content: "";
+  position: fixed;
+  inset: -20vmax;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 30rem at 8% -6%, var(--bloom-1), transparent 60%),
+    radial-gradient(34rem 26rem at 92% 2%, var(--bloom-2), transparent 58%),
+    radial-gradient(46rem 34rem at 60% 108%, var(--bloom-3), transparent 62%);
+  filter: blur(var(--bloom-blur));
+  opacity: var(--bloom-opacity);
+}
+
+body::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(58rem 30rem at 12% -8%, var(--brand-soft), transparent 62%),
-    radial-gradient(46rem 26rem at 96% 4%, var(--amber-soft), transparent 60%);
-  opacity: .75;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 46px 46px;
+  /* fades out towards the middle of the page so the grid frames the content
+     rather than sitting behind the reading area */
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 0%, #000 0%, transparent 72%);
+  mask-image: radial-gradient(120% 80% at 50% 0%, #000 0%, transparent 72%);
+  opacity: var(--grid-opacity);
 }
 
 h1, h2, h3 {
@@ -262,18 +303,33 @@ main.container { padding-block: var(--s6) var(--s8); }
 /* ---------------------------------------------------------------- cards */
 
 .card {
-  background: var(--panel);
+  position: relative;
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   border-radius: var(--r);
   box-shadow: var(--shadow-1);
   overflow: hidden;
+}
+
+/* a hairline of light along the top edge, so a card reads as a raised
+   surface rather than a rectangle of a different colour */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--card-edge);
+  pointer-events: none;
 }
 .card-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: var(--s3);
   padding: var(--s4) var(--s5);
   border-bottom: 1px solid var(--line);
-  background: var(--panel-2);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--panel-2) 90%, transparent),
+    color-mix(in srgb, var(--panel-2) 55%, transparent));
 }
 .card-head h2, .card-head h3 { margin: 0; }
 .card-body { padding: var(--s5); }
@@ -294,12 +350,31 @@ main.container { padding-block: var(--s6) var(--s8); }
 /* ---------------------------------------------------------------- stats */
 
 .stat {
+  position: relative;
   padding: var(--s5);
-  background: var(--panel);
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   border-radius: var(--r);
   box-shadow: var(--shadow-1);
+  overflow: hidden;
 }
+
+/* the number is echoed as a wash behind itself */
+.stat::after {
+  content: "";
+  position: absolute;
+  right: -30px; top: -34px;
+  width: 116px; height: 116px;
+  border-radius: 50%;
+  background: var(--stat-wash, transparent);
+  opacity: .5;
+  pointer-events: none;
+}
+.stat.brand { --stat-wash: var(--brand-soft); }
+.stat.amber { --stat-wash: var(--amber-soft); }
+.stat.verified { --stat-wash: var(--verified-soft); }
+.stat > * { position: relative; }
 .stat .n {
   font-family: var(--display);
   font-size: 2rem; font-weight: 700; line-height: 1;
@@ -524,7 +599,8 @@ textarea.input { line-height: 1.6; resize: vertical; }
 .lab-card {
   display: flex; flex-direction: column;
   padding: var(--s5);
-  background: var(--panel);
+  background: var(--card-bg);
+  backdrop-filter: blur(14px);
   border: 1px solid var(--line);
   border-radius: var(--r);
   box-shadow: var(--shadow-1);
@@ -596,3 +672,204 @@ td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-alig
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ------------------------------------------------------------- explainers
+
+   Nobody opens a notes app to read about key derivation. The detail lives
+   behind a link on the page it belongs to, so it is there when somebody
+   wants it and out of the way when they do not. */
+
+.explain-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px 3px 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.explain-link:hover { color: var(--brand); border-color: var(--brand); }
+.explain-link .q {
+  width: 15px; height: 15px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: .62rem;
+  font-weight: 700;
+}
+
+dialog.explain {
+  width: min(560px, calc(100% - 2rem));
+  max-height: calc(100vh - 4rem);
+  margin: auto;                 /* a dialog with a set width does not centre on its own */
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: var(--shadow-2);
+}
+dialog.explain::backdrop {
+  background: rgba(20, 12, 24, .55);
+  backdrop-filter: blur(3px);
+}
+dialog.explain .x-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s5) var(--s6) var(--s4);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(150deg, var(--brand-soft), transparent 70%);
+}
+dialog.explain h2 { margin: 0; font-size: 1.2rem; }
+dialog.explain .x-body { padding: var(--s5) var(--s6) var(--s6); }
+dialog.explain .x-body p { font-size: .96rem; }
+dialog.explain .x-body p:last-child { margin-bottom: 0; }
+dialog.explain .x-close {
+  border: 0; background: transparent; cursor: pointer;
+  color: var(--muted); font-size: 1.3rem; line-height: 1; padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+dialog.explain .x-close:hover { color: var(--ink); background: var(--bg-tint); }
+
+/* the part somebody technical might want, folded away by default */
+details.deep {
+  margin-top: var(--s5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  overflow: hidden;
+}
+details.deep > summary {
+  padding: var(--s3) var(--s4);
+  cursor: pointer;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  list-style: none;
+}
+details.deep > summary::-webkit-details-marker { display: none; }
+details.deep > summary::before { content: "+ "; color: var(--brand); font-weight: 700; }
+details.deep[open] > summary::before { content: "\2212 "; }
+details.deep > summary:hover { color: var(--brand); }
+details.deep .deep-body {
+  padding: 0 var(--s4) var(--s4);
+  font-size: .86rem;
+  color: var(--muted);
+}
+details.deep .deep-body dl.kv { grid-template-columns: 9.5rem 1fr; }
+details.deep .deep-body p:last-child { margin-bottom: 0; }
+
+/* ---------------------------------------------------------------- hero */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--s6) var(--s6) var(--s7);
+  margin-bottom: var(--s5);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--brand-soft) 90%, transparent),
+      color-mix(in srgb, var(--amber-soft) 80%, transparent) 62%,
+      transparent);
+  box-shadow: var(--shadow-1);
+}
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -70px; bottom: -110px;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  border: 34px solid var(--brand);
+  opacity: .11;
+  pointer-events: none;
+}
+.hero h1 { margin-bottom: var(--s3); }
+.hero p { max-width: 54ch; margin-bottom: 0; color: var(--ink-2); }
+.hero .actions { margin-top: var(--s5); }
+
+/* ------------------------------------------------------ small usability */
+
+/* a stat that is also a link should say so when you point at it */
+a.stat {
+  text-decoration: none;
+  color: inherit;
+  transition: transform .1s ease, border-color .15s ease, box-shadow .15s ease;
+}
+a.stat:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand);
+  box-shadow: var(--shadow-2);
+  color: inherit;
+}
+a.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* the navigation is the one thing that has to survive a narrow screen */
+@media (max-width: 720px) {
+  .nav {
+    flex-wrap: wrap;
+    min-height: 0;
+    padding-block: var(--s2);
+    gap: var(--s2);
+    row-gap: var(--s2);
+  }
+  .nav .brand-name { font-size: .98rem; }
+
+  /* one row for identity, one for the sections, and no third row */
+  .nav-links {
+    order: 3;
+    width: 100%;
+    margin-inline-end: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-bottom: 1px;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { flex: none; padding: 5px 10px; font-size: .86rem; }
+
+  .nav-right { margin-inline-start: auto; gap: var(--s1); }
+  .chip { padding: 3px; border: 0; }
+  .chip .uname { display: none; }
+  .nav-right .btn-ghost.tiny { padding: 5px 10px; font-size: .78rem; }
+
+  .page-head { align-items: flex-start; }
+  .hero { padding: var(--s5); }
+  .hero::after { display: none; }
+  .kv { grid-template-columns: 1fr; gap: var(--s1); }
+  .kv dt { margin-top: var(--s2); }
+  .list li { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+}
+
+/* a flash message reads better if it does not sit there for ever */
+.flashes li { position: relative; padding-inline-end: var(--s7); }
+.flashes li button.dismiss {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  border: 0; background: transparent; cursor: pointer;
+  color: inherit; opacity: .55;
+  font-size: 1.1rem; line-height: 1; padding: 4px 7px;
+  border-radius: var(--r-sm);
+}
+.flashes li button.dismiss:hover { opacity: 1; background: rgba(127, 127, 127, .16); }
+
+/* the fingerprint is meant to be read out loud, so let it be selected */
+.fingerprint { user-select: all; cursor: text; }
+
+/* long note bodies should not run to the full width of a wide screen */
+.prose { max-width: 68ch; }

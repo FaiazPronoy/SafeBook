@@ -32,7 +32,7 @@
               </div>
             </td>
             <td class="num">{{ row.per_second|floatformat:0 }}</td>
-            <td class="num">{% if row.slowdown > 1.5 %}{{ row.slowdown|floatformat:0 }}&times;{% else %}&mdash;{% endif %}</td>
+            <td class="num">{% if row.slowdown > 1.5 %}{{ row.slowdown|floatformat:0 }}&times;{% else %}none{% endif %}</td>
             <td class="num">{% if row.crack_days < 1 %}{{ row.crack_days|floatformat:3 }} days
                 {% elif row.crack_days < 900 %}{{ row.crack_days|floatformat:0 }} days
                 {% else %}{{ row.crack_days|floatformat:0 }} days{% endif %}</td>
@@ -42,8 +42,9 @@
     </table>
   </div>
   <div class="card-foot muted">
-    The last column walks every six letter lowercase password &mdash; {{ space|floatformat:0 }} of
-    them &mdash; at the speed in the column before it, on this one machine. An attacker with a
+    The last column walks through every six letter lowercase password, all
+    {{ space|floatformat:0 }} of them, at the speed in the column before it, on this one
+    machine. An attacker with a
     graphics card is thousands of times faster than this on MD5 and barely faster at all on
     Argon2id, because memory is the thing Argon2 makes them buy and cores are not a substitute.
   </div>

@@ -8,8 +8,8 @@
     <p class="muted">A verifier that stops at the first wrong byte takes longer when more of the
       guess was right. That is enough to find a 32 byte MAC one byte at a time, without ever
       guessing the whole thing. Three ways of comparing the same bytes. Each figure is the
-      <b>fastest</b> of thirteen runs of {{ rounds }} comparisons, not the average &mdash;
-      anything else running on this machine can only add time, so the smallest number is the
+      <b>fastest</b> of thirteen runs of {{ rounds }} comparisons rather than the average.
+      Anything else running on this machine can only add time, so the smallest number is the
       closest thing to the cost of the comparison on its own.</p>
   </div>
 </div>
@@ -61,17 +61,18 @@
     <div class="card-body">
       <p class="small muted">Comparing two <code>bytes</code> objects in CPython drops into
         <code>memcmp</code>, which reads several bytes at a time in C. Over 32 bytes the whole
-        comparison is faster than the loop that calls it, so the difference is buried in noise
-        &mdash; on this run, a spread of {{ eq_spread|floatformat:0 }} ns against the loop&rsquo;s
-        {{ loop_spread|floatformat:0 }} ns. That is a measurement failing to find something, not
-        proof it is safe: the same code on longer data, or in another runtime, has no such cover.</p>
+        comparison is faster than the loop that calls it, so the difference is buried in
+        noise. On this run it spread {{ eq_spread|floatformat:0 }} ns against the loop&rsquo;s
+        {{ loop_spread|floatformat:0 }} ns. That is a measurement failing to find something
+        rather than proof it is safe, and the same code on longer data has no such cover.</p>
     </div>
   </div>
 </div>
 
 <div class="note verified" style="margin-top: var(--s5)">
   <span><b>So SafeBook uses <code>hmac.compare_digest</code>.</b> It always reads every byte,
-    whatever it finds. It costs nothing and it removes the question &mdash; which is the right
-    trade when the alternative is arguing about whether a leak is small enough to ignore.</span>
+    whatever it finds. It costs nothing and it takes the question off the table, which is
+    the right trade when the alternative is arguing about whether a leak is small enough to
+    ignore.</span>
 </div>
 {% endblock %}

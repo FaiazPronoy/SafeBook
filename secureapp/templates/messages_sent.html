@@ -4,10 +4,9 @@
 <div class="page-head">
   <div>
     <div class="eyebrow">Sent</div>
-    <h1>What you have sent</h1>
-    <p class="muted">You can still read these because each message keeps a second copy of its
-      session key, wrapped with your own public key. Anonymous messages keep no such copy,
-      so they are missing from here on purpose.</p>
+    <h1>Messages you have sent</h1>
+    <p class="muted">Anything you sent anonymously is not listed here. That is the
+      trade: your name comes off it, and so does your copy.</p>
   </div>
   <div class="actions">
     <a class="btn" href="{% url 'message_new' %}">New message</a>
@@ -27,7 +26,7 @@
               &middot; <time datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:"j M Y, H:i" }}</time>
               {% if m.read %}<span class="badge verified">Read</span>
               {% else %}<span class="badge plain">Not opened yet</span>{% endif %}
-              {% if not m.intact %}<span class="badge broken">Integrity check failed</span>{% endif %}
+              {% if not m.intact %}<span class="badge broken">Cannot be opened</span>{% endif %}
             </div>
           </div>
           <a class="btn-ghost tiny" href="{% url 'message_detail' m.id %}">Open</a>
@@ -38,6 +37,7 @@
     <div class="empty">
       <h3>Nothing sent</h3>
       <p>Messages you send under your own name will be listed here.</p>
+      <p><a class="btn" href="{% url 'message_new' %}">Write one</a></p>
     </div>
   {% endif %}
 </section>

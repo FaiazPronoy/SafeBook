@@ -3,11 +3,11 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 05</div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">How it works</a> / 05</div>
     <h1>Flip one bit</h1>
-    <p class="muted">A row is encrypted the way SafeBook encrypts a post. Then one byte of the
-      ciphertext is changed, as someone with write access to the database could. Both checks
-      run against the altered bytes.</p>
+    <p class="muted">A note is locked the way SafeBook locks yours. Then a single byte of it
+      is changed, which is what somebody with write access to the database could do. Both of the
+      checks that run before anything is shown to you are run against the altered version.</p>
   </div>
 </div>
 
@@ -54,9 +54,9 @@
       {% endfor %}
 
       <div class="note verified" style="margin-top: var(--s5)">
-        <span>In SafeBook a row that fails either check is not shown at all &mdash; the view
-          redirects and says so. Displaying the content with a warning beside it would mean
-          the check was decoration.</span>
+        <span>A note that fails either check is not shown at all. You get told it could
+          not be opened, and that is the end of it. Showing you the damaged version with a
+          warning beside it would make the check decoration.</span>
       </div>
     </div>
   </section>

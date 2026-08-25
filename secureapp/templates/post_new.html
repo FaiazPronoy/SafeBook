@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}New post · SafeBook{% endblock %}
+{% block title %}New note · SafeBook{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow">New post</div>
+    <div class="eyebrow">New note</div>
     <h1>Write something</h1>
   </div>
+  {% include "_explain.html" with topic="visibility" label="Private or shared?" %}
 </div>
 
 <div class="dash">
@@ -15,7 +16,7 @@
         {% csrf_token %}
         {% include "_form.html" %}
         <div class="actions">
-          <button class="btn" type="submit">Encrypt and save</button>
+          <button class="btn" type="submit">Save note</button>
           <a class="btn-ghost" href="{% url 'index' %}">Cancel</a>
         </div>
       </form>
@@ -23,18 +24,15 @@
   </section>
 
   <aside class="card col-4">
-    <div class="card-head"><h2>What happens when you save</h2></div>
+    <div class="card-head"><h2>Before you save</h2></div>
     <div class="card-body">
-      <ol class="small muted" style="padding-left: 1.1rem; line-height: 1.9">
-        <li>A fresh 256 bit key is drawn for this post alone.</li>
-        <li>Title and body are encrypted with AES-256-GCM under that key.</li>
-        <li>An HMAC-SHA256 is taken over the whole row, tying the fields together.</li>
-        <li>The post key is wrapped with your data key, which only your password opens.</li>
-        <li>If you tick publish, it is wrapped a second time with the server key &mdash;
-            and only then can the feed read it.</li>
-      </ol>
-      <div class="note brand"><span>Publishing later adds that second wrapping.
-        The post itself is never re-encrypted.</span></div>
+      <p class="small">Leave the box below unticked and this note stays yours alone.
+        Nobody else can read it, and neither can SafeBook.</p>
+      <p class="small">Tick it and the note appears on the public feed, where anyone
+        signed in can read it. You can change your mind later and take it back off.</p>
+      <div class="note brand" style="margin-top: var(--s4)">
+        <span>Whichever you pick, the note is locked before it is saved.</span>
+      </div>
     </div>
   </aside>
 </div>

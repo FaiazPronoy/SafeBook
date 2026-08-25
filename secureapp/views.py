@@ -55,7 +55,7 @@ def needs_key(view):
     def wrapper(request, *args, **kwargs):
         dek = read_private_dek(request)
         if dek is None:
-            flash.info(request, "Please sign in again to unlock your data.")
+            flash.info(request, "Please sign in again to unlock your notes.")
             return redirect("login")
         return view(request, dek, *args, **kwargs)
     return wrapper
@@ -173,7 +173,7 @@ def login_view(request):
             # the password matched the hash but the envelope did not open, so
             # the two are out of step with each other
             record_attempt(request, username, False)
-            flash.error(request, "Your key envelope could not be opened. "
+            flash.error(request, "Something is wrong with this account's key. "
                                  "Use your recovery code to set a new password.")
             return redirect("recover")
 
@@ -193,7 +193,7 @@ def logout_view(request):
     django_logout(request)
     response = redirect("login")
     disarm_session(request, response)
-    flash.info(request, "Signed out. Your keys are no longer on this server.")
+    flash.info(request, "Signed out.")
     return response
 
 
@@ -282,8 +282,7 @@ def change_password_view(request, dek):
     django_login(request, user)
     response = redirect("account")
     arm_session(request, response, dek)
-    flash.success(request, "Password changed. Your posts were not re-encrypted - "
-                           "only the envelope holding your key was.")
+    flash.success(request, "Password changed. Nothing you have written was touched.")
     return response
 
 
@@ -356,7 +355,7 @@ def post_new_view(request, dek):
                    form.cleaned_data["body"], request.user.id)
         post.save()
 
-        flash.success(request, "Encrypted and stored.")
+        flash.success(request, "Saved.")
         return redirect("post_detail", post_id=post.id)
 
     return render(request, "post_new.html", {"form": form})
@@ -368,7 +367,7 @@ def post_detail_view(request, dek, post_id: int):
     mine = post.user_id == request.user.id
 
     if not mine and not post.is_public:
-        flash.error(request, "That post is not yours to read.")
+        flash.error(request, "That note is private.")
         return redirect("index")
 
     try:
@@ -381,7 +380,7 @@ def post_detail_view(request, dek, post_id: int):
         title, body, intact = None, None, False
 
     if not intact:
-        flash.error(request, "This post failed its integrity check and will not be shown.")
+        flash.error(request, "This note could not be opened, so it is not being shown.")
         return redirect("index" if mine else "feed")
 
     return render(request, "post_detail.html", {
@@ -403,12 +402,12 @@ def post_visibility_view(request, dek, post_id: int):
         post.is_public = False
         post.key_public = None
         post.key_public_kek_id = None
-        flash.success(request, "Taken off the feed. The server can no longer open this post.")
+        flash.success(request, "This note is private again.")
     else:
         post.is_public = True
         post.key_public = keys.wrap_post_key_for_public(post_key)
         post.key_public_kek_id = get_active_kek()[1]
-        flash.success(request, "Published. The post itself was not re-encrypted.")
+        flash.success(request, "Shared on the feed.")
 
     post.save(update_fields=["is_public", "key_public", "key_public_kek_id"])
     return redirect("post_detail", post_id=post.id)
@@ -420,7 +419,7 @@ def post_delete_view(request, dek, post_id: int):
 
     if request.method == "POST":
         post.delete()
-        flash.success(request, "Deleted.")
+        flash.success(request, "Note deleted.")
         return redirect("index")
 
     try:
@@ -514,7 +513,7 @@ def message_new_view(request, dek, to: str = ""):
                 load_public_key_from_pem(request.user.public_key_pem.encode()), session_key)
         message.save()
 
-        flash.success(request, f"Sealed with {recipient.username}'s public key and sent.")
+        flash.success(request, f"Sent to {recipient.username}.")
         return redirect("messages_inbox" if anonymous else "messages_sent")
 
     recipient = Account.objects.filter(username__iexact=to).first() if to else None
@@ -540,7 +539,7 @@ def message_detail_view(request, dek, msg_id: int):
         title, body, intact = None, None, False
 
     if not intact:
-        flash.error(request, "This message failed its integrity check and will not be shown.")
+        flash.error(request, "This message could not be opened, so it is not being shown.")
         return redirect("messages_inbox")
 
     if as_recipient and message.read_at is None:

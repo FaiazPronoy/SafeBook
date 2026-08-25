@@ -3,12 +3,12 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 02</div>
+    <div class="eyebrow"><a href="{% url 'lab' %}">How it works</a> / 02</div>
     <h1>One repeated nonce, both messages lost</h1>
-    <p class="muted">AES-GCM runs a counter mode underneath, which means it encrypts by XOR-ing
-      a keystream over the plaintext. Use the same key and nonce twice and the same keystream
-      comes out, so XOR-ing the two ciphertexts cancels it and leaves the two plaintexts XOR-ed
-      with each other. Knowing one of them hands you the other.</p>
+    <p class="muted">Locking works by mixing your text with a long stream of noise. Every
+      message is supposed to get its own stream. Use the same one twice and the two locked
+      messages cancel each other out, leaving the two originals mixed together. Anyone who
+      knows one of them gets the other for free, without ever touching the key.</p>
   </div>
 </div>
 
@@ -41,13 +41,14 @@
       <div class="hex">{{ c1 }}</div>
       <p class="small muted" style="margin-top: var(--s4)">Second ciphertext</p>
       <div class="hex">{{ c2 }}</div>
-      <p class="small muted" style="margin-top: var(--s4)">XOR of the two &mdash; the keystream is gone</p>
+      <p class="small muted" style="margin-top: var(--s4)">The two locked messages cancelled against each other</p>
       <div class="hex brand">{{ xor_ct }}</div>
       <p class="small muted" style="margin-top: var(--s4)">XOR that with the message they knew:</p>
       <div class="recovery-code" style="font-size: 1rem; letter-spacing: 0">{{ recovered }}</div>
       {% if recovered_exactly %}
         <div class="note brand" style="margin-top: var(--s4)">
-          <span>Recovered exactly, with no key and no attack on AES. The mistake was the nonce.</span>
+          <span>Recovered exactly. No key was involved and nothing was broken. Reusing
+            the noise was the whole mistake.</span>
         </div>
       {% endif %}
     </div>
@@ -62,9 +63,9 @@
       <p class="small muted">Same key, same two messages, one new random nonce per message.
         The identical attack now returns:</p>
       <div class="hex">{{ junk_hex }}</div>
-      <p class="small muted" style="margin-top: var(--s3)">Every call to <code>aead_encrypt</code>
-        in this app draws 12 fresh random bytes, which is what makes this the boring answer
-        instead of the interesting one.</p>
+      <p class="small muted" style="margin-top: var(--s3)">Every single thing SafeBook locks
+        gets its own fresh noise, which is what makes this the boring answer rather than the
+        interesting one.</p>
     </div>
   </section>
 </div>

@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Public feed · SafeBook{% endblock %}
+{% block title %}Feed · SafeBook{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow">Public feed</div>
-    <h1>Posts people chose to publish</h1>
-    <p class="muted">These are the only rows the server can open on its own, because their
-      authors handed it a second copy of the key. Anything not published stays shut.</p>
+    <div class="eyebrow">Feed</div>
+    <h1>Notes people chose to share</h1>
+    <p class="muted">Everything else on SafeBook stays shut. These are here because
+      their authors decided to put them here.</p>
   </div>
+  {% include "_explain.html" with topic="visibility" label="What does sharing change?" %}
 </div>
 
 {% if items %}
@@ -19,7 +20,7 @@
           {% if item.mine %}<span class="badge plain">Yours</span>{% endif %}
         </div>
         <div class="card-body">
-          <p class="prose">{{ item.body|truncatechars:320 }}</p>
+          <p class="prose">{{ item.body|truncatechars:300 }}</p>
         </div>
         <div class="card-foot">
           <span class="muted">{{ item.author }} &middot; {{ item.created_at|date:"j M Y" }}</span>
@@ -33,8 +34,9 @@
   </div>
 {% else %}
   <div class="card"><div class="empty">
-    <h3>The feed is empty</h3>
-    <p>Nobody has published anything yet. A post is private until its author adds the second key.</p>
+    <h3>Nothing shared yet</h3>
+    <p>Notes stay private until somebody chooses otherwise, and nobody has yet.</p>
+    <p><a class="btn" href="{% url 'post_new' %}">Write the first one</a></p>
   </div></div>
 {% endif %}
 {% endblock %}

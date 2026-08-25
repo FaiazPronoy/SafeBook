@@ -4,14 +4,13 @@
 <div class="page-head">
   <div>
     <div class="eyebrow">Inbox</div>
-    <h1>Sealed for you</h1>
-    <p class="muted">Each one carries a session key wrapped with your public key. Your private
-      key is itself encrypted with your data key, so opening these needs your password and
-      nothing less.</p>
+    <h1>Messages for you</h1>
+    <p class="muted">Each of these was locked for your account before it was sent.</p>
   </div>
   <div class="actions">
     <a class="btn" href="{% url 'message_new' %}">New message</a>
     <a class="btn-ghost" href="{% url 'messages_sent' %}">Sent</a>
+    {% include "_explain.html" with topic="messages" label="How does that work?" %}
   </div>
 </div>
 
@@ -25,8 +24,8 @@
             <div class="s">
               from <b>{{ m.sender }}</b>
               &middot; <time datetime="{{ m.created_at|date:'c' }}">{{ m.created_at|date:"j M Y, H:i" }}</time>
-              {% if m.unread %}<span class="badge public">Unread</span>{% endif %}
-              {% if not m.intact %}<span class="badge broken">Integrity check failed</span>{% endif %}
+              {% if m.unread %}<span class="badge public">New</span>{% endif %}
+              {% if not m.intact %}<span class="badge broken">Cannot be opened</span>{% endif %}
             </div>
           </div>
           <a class="btn-ghost tiny" href="{% url 'message_detail' m.id %}">Open</a>
@@ -35,8 +34,8 @@
     </ul>
   {% else %}
     <div class="empty">
-      <h3>No messages</h3>
-      <p>Nothing has been sealed for your key yet.</p>
+      <h3>No messages yet</h3>
+      <p>Anything sent to you will land here.</p>
       <p><a class="btn" href="{% url 'directory' %}">Find someone to write to</a></p>
     </div>
   {% endif %}

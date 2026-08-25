@@ -3,11 +3,11 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow"><a href="{% url 'lab' %}">Security Lab</a> / 01</div>
-    <h1>ECB does not hide a picture</h1>
-    <p class="muted">The same {{ blocks }} blocks of greyscale, encrypted three ways with the
-      same AES key. ECB maps every identical block to the same ciphertext, so the flat areas of
-      the picture stay flat and the shape survives. Reload for fresh keys.</p>
+    <div class="eyebrow"><a href="{% url 'lab' %}">How it works</a> / 01</div>
+    <h1>Why locking is not one thing</h1>
+    <p class="muted">One picture, locked three different ways with the same key. The first
+      way locks each small square on its own, so two identical squares come out identical and
+      the shape of the padlock is still perfectly readable. Reload the page for fresh keys.</p>
   </div>
 </div>
 
@@ -28,9 +28,10 @@
     </div>
   </div>
   <div class="card-foot muted">
-    The picture has large flat areas, so the plaintext itself repeats blocks. ECB keeps that
-    count almost exactly &mdash; that is the leak. CBC and GCM chain or counter each block, so
-    two identical inputs land on different outputs and the count drops to nothing.
+    The picture has large flat areas, so the original repeats a lot of squares. The first
+    method keeps that count almost exactly, and the repeats are the leak. The other two mix each
+    square into the next, so two identical inputs land on completely different outputs and the
+    count falls to nothing. SafeBook uses the last one.
   </div>
 </div>
 {% endblock %}

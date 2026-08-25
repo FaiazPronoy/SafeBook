@@ -5,25 +5,27 @@
   <div class="card">
     <div class="card-body">
       <div class="eyebrow">Create account</div>
-      <h1>Make a set of keys</h1>
-      <p class="muted small">Signing up generates a 256 bit data key and an RSA-2048 keypair for
-        you. Your password wraps the data key; the data key encrypts everything else, the RSA
-        private half included.</p>
+      <h1>Somewhere to keep things</h1>
+      <p class="muted small">Notes and messages that stay yours. Pick a password you can
+        remember, because it is the only thing that opens them.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
         {% include "_form.html" %}
-        <button class="btn" type="submit" style="width:100%">Create my keys</button>
+        <button class="btn" type="submit" style="width:100%">Create my account</button>
       </form>
 
       <div class="note brand" style="margin-top: var(--s5)">
-        <span>Your password is the only thing that opens your data. The next page shows a
-          recovery code &mdash; it is shown once and it is the only other way in.</span>
+        <span>The next page shows a recovery code. It is shown once, and it is the only
+          other way into your account.</span>
       </div>
 
       <p class="small muted" style="margin-top: var(--s4)">
         Already have an account? <a href="{% url 'login' %}">Sign in</a>.
       </p>
+      <div style="margin-top: var(--s3)">
+        {% include "_explain.html" with topic="vault" label="What happens to what I write?" %}
+      </div>
     </div>
   </div>
 </div>

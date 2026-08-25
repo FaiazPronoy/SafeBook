@@ -1,0 +1,9 @@
+{% comment %}
+A link that opens one explanation. The dialogs themselves live in
+_dialogs.html, rendered once per page.
+
+    {% include "_explain.html" with topic="vault" %}
+{% endcomment %}
+<button class="explain-link" type="button" data-explain="{{ topic }}">
+  <span class="q" aria-hidden="true">?</span>{{ label|default:"How is this kept safe?" }}
+</button>

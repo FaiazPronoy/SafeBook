@@ -1,31 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · SafeBook{% endblock %}
+{% block title %}Home · SafeBook{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div>
-    <div class="eyebrow">Signed in as {{ user.username }}</div>
-    <h1>Your vault</h1>
-    <p class="muted">Your key was unwrapped from your password when you signed in.
-      Close this session and the server goes back to holding ciphertext it cannot open.</p>
-  </div>
+
+<section class="hero">
+  <div class="eyebrow">Signed in as {{ user.username }}</div>
+  <h1>Welcome back, {{ user.username }}</h1>
+  <p>Everything you keep here is locked with a key only your password opens.
+    While you are signed in it is open to you, and to nobody else.</p>
   <div class="actions">
-    <a class="btn" href="{% url 'post_new' %}">Write a post</a>
+    <a class="btn" href="{% url 'post_new' %}">Write a note</a>
     <a class="btn-ghost" href="{% url 'message_new' %}">Send a message</a>
+    {% include "_explain.html" with topic="vault" label="What does that mean?" %}
   </div>
-</div>
+</section>
 
 <div class="grid grid-4" style="margin-bottom: var(--s5)">
-  <div class="stat"><div class="n brand">{{ private_count }}</div><div class="l">Private posts &mdash; only your password opens these</div></div>
-  <div class="stat"><div class="n amber">{{ public_count }}</div><div class="l">Public posts &mdash; the server holds a second key</div></div>
-  <div class="stat"><div class="n">{{ unread }}</div><div class="l">Unread messages</div></div>
-  <div class="stat"><div class="n">{{ sent_count }}</div><div class="l">Messages you have sent</div></div>
+  <div class="stat brand">
+    <div class="n brand">{{ private_count }}</div>
+    <div class="l">private notes, for your eyes only</div>
+  </div>
+  <div class="stat amber">
+    <div class="n amber">{{ public_count }}</div>
+    <div class="l">notes you have shared</div>
+  </div>
+  <a class="stat" href="{% url 'messages_inbox' %}">
+    <div class="n">{{ unread }}</div>
+    <div class="l">unread {{ unread|pluralize:"message,messages" }}</div>
+  </a>
+  <a class="stat" href="{% url 'messages_sent' %}">
+    <div class="n">{{ sent_count }}</div>
+    <div class="l">messages you have sent</div>
+  </a>
 </div>
 
 <div class="dash">
   <section class="card col-8">
     <div class="card-head">
-      <h2>Your posts</h2>
-      <span class="badge plain">{{ posts|length }} total</span>
+      <h2>Your notes</h2>
+      <span class="badge plain">{{ posts|length }}</span>
     </div>
     {% if posts %}
       <ul class="list">
@@ -35,9 +47,9 @@
               <div class="t"><a href="{% url 'post_detail' p.id %}">{{ p.title }}</a></div>
               <div class="s">
                 <time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|date:"j M Y, H:i" }}</time>
-                {% if p.is_public %}<span class="badge public">Public</span>
+                {% if p.is_public %}<span class="badge public">Shared</span>
                 {% else %}<span class="badge private">Private</span>{% endif %}
-                {% if not p.intact %}<span class="badge broken">Integrity check failed</span>{% endif %}
+                {% if not p.intact %}<span class="badge broken">Cannot be opened</span>{% endif %}
               </div>
             </div>
             <div class="actions">
@@ -49,27 +61,31 @@
       {% if unreadable %}
         <div class="card-foot">
           <span class="badge broken">{{ unreadable }}</span>
-          rows did not pass their MAC and are not being shown. Nothing was silently repaired.
+          {{ unreadable|pluralize:"note,notes" }} could not be opened, so
+          {{ unreadable|pluralize:"it is,they are" }} not being shown.
+          {% include "_explain.html" with topic="checks" label="Why?" %}
         </div>
       {% endif %}
     {% else %}
       <div class="empty">
-        <h3>Nothing stored yet</h3>
-        <p>Write something. It is encrypted in this process before it reaches the database.</p>
-        <p><a class="btn" href="{% url 'post_new' %}">Write your first post</a></p>
+        <h3>Nothing here yet</h3>
+        <p>Write your first note. It is locked before it leaves this page.</p>
+        <p><a class="btn" href="{% url 'post_new' %}">Write a note</a></p>
       </div>
     {% endif %}
   </section>
 
   <aside class="card col-4 is-verified">
-    <div class="card-head"><h2>Your messaging key</h2></div>
+    <div class="card-head">
+      <h2>Your safety number</h2>
+      {% include "_explain.html" with topic="safety-number" label="What is this?" %}
+    </div>
     <div class="card-body">
-      <p class="small muted">Read this out to someone over a channel that is not SafeBook.
-        If their copy of it does not match, a key has been swapped somewhere between you.</p>
       <div class="fingerprint">{{ fingerprint }}</div>
-      <p class="small muted" style="margin-top: var(--s4)">SHA-256 of your RSA-2048 public key.</p>
+      <p class="small muted" style="margin-top: var(--s4)">Read this out to somebody
+        away from SafeBook. If their copy matches, you are writing to the right person.</p>
       <div class="actions">
-        <a class="btn-ghost tiny" href="{% url 'directory' %}">Compare with others</a>
+        <a class="btn-ghost tiny" href="{% url 'directory' %}">See other people</a>
         <a class="btn-ghost tiny" href="{% url 'account' %}">Account</a>
       </div>
     </div>

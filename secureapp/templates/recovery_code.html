@@ -4,25 +4,21 @@
 <div class="auth auth-wide">
   <div class="card is-private">
     <div class="card-body">
-      <div class="eyebrow">One time only</div>
-      <h1>Write this down now</h1>
-      <p class="muted">This is the second key to <b>{{ username }}</b>. It wraps the same data key
-        your password wraps, so it is the only way back in if the password is lost.</p>
+      <div class="eyebrow">Shown once</div>
+      <h1>Write this down before you go on</h1>
+      <p class="muted">This is the second key to <b>{{ username }}</b>. If you forget your
+        password, it is the only way back in.</p>
 
       <div class="recovery-code">{{ code }}</div>
 
       <div class="note amber" style="margin-top: var(--s5)">
-        <span>SafeBook keeps no readable copy of this. Leaving this page loses it, and no
-          administrator, including whoever runs the server, can print it again.</span>
+        <span>SafeBook keeps no readable copy of this. Leave this page without it and
+          nobody, including whoever runs the server, can print it again.</span>
       </div>
-
-      <ul class="small muted" style="margin-top: var(--s4); padding-left: 1.1rem; line-height: 1.9">
-        <li>About 99 bits of entropy, from a alphabet with no characters that look alike.</li>
-        <li>Using it sets a new password and issues a fresh code in the same step.</li>
-      </ul>
 
       <div class="actions" style="margin-top: var(--s5)">
         <a class="btn" href="{% url 'login' %}">I have written it down</a>
+        {% include "_explain.html" with topic="recovery" label="Why do I need this?" %}
       </div>
     </div>
   </div>

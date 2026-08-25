@@ -18,25 +18,31 @@
 <div class="dash">
   <article class="card col-8 is-verified">
     <div class="card-head">
-      <span class="badge verified">Integrity verified</span>
+      <span class="badge verified">Sealed for you</span>
       {% if message.is_anonymous %}<span class="badge plain">Sent anonymously</span>{% endif %}
+      {% include "_explain.html" with topic="messages" label="What does that mean?" %}
     </div>
     <div class="card-body"><div class="prose">{{ body }}</div></div>
   </article>
 
   <aside class="card col-4">
-    <div class="card-head"><h2>How it reached you</h2></div>
-    <div class="card-body">
-      <dl class="kv">
-        <dt>Body</dt><dd>AES-256-GCM</dd>
-        <dt>Session key</dt><dd>RSA-2048-OAEP, {{ wrapped_len }} bytes</dd>
-        <dt>Row MAC</dt><dd>HMAC-SHA256</dd>
-      </dl>
-      {% if fingerprint %}
-        <p class="small muted" style="margin-top: var(--s5)">{{ counterparty }} key fingerprint:</p>
+    {% if fingerprint %}
+      <div class="card-head">
+        <h2>{{ counterparty }}</h2>
+        {% include "_explain.html" with topic="safety-number" label="Safety number" %}
+      </div>
+      <div class="card-body">
         <div class="fingerprint">{{ fingerprint }}</div>
-      {% endif %}
-    </div>
+        <p class="small muted" style="margin-top: var(--s4)">Check this against what
+          {{ counterparty }} reads out to you somewhere other than SafeBook.</p>
+      </div>
+    {% else %}
+      <div class="card-head"><h2>Sent anonymously</h2></div>
+      <div class="card-body">
+        <p class="small muted">Whoever wrote this chose not to attach their name, and
+          SafeBook did not keep one. There is nothing here to look up.</p>
+      </div>
+    {% endif %}
   </aside>
 </div>
 {% endblock %}

@@ -38,8 +38,8 @@ class RegisterForm(forms.Form):
         if p1 and p2 and p1 != p2:
             self.add_error("password2", "The two passwords do not match.")
         elif p1:
-            # the password is also the key that unlocks the account's data, so
-            # it goes through the same strength rules as any other password
+            # this password is also the key to the account's data, so a weak one
+            # is a weak lock and not just a weak login
             try:
                 validate_password(p1)
             except forms.ValidationError as exc:
@@ -56,7 +56,7 @@ class LoginForm(forms.Form):
 
 
 class ChangePasswordForm(forms.Form):
-    """Changing the password re-wraps the DEK. No post is re-encrypted."""
+    """Changing the password re-wraps the DEK. No note is re-encrypted."""
 
     current = forms.CharField(label="Current password", widget=_pw("current password", "current-password"))
     new1 = forms.CharField(label="New password", widget=_pw("new password", "new-password"))
@@ -100,12 +100,12 @@ class RecoverForm(forms.Form):
 
 class PostForm(forms.Form):
     title = forms.CharField(max_length=200, label="Title",
-                            widget=forms.TextInput(attrs={"class": "input", "placeholder": "a short title",
+                            widget=forms.TextInput(attrs={"class": "input", "placeholder": "give it a name",
                                                           "autofocus": "autofocus"}))
     body = forms.CharField(label="Body",
                            widget=forms.Textarea(attrs={"class": "input", "rows": 10,
-                                                        "placeholder": "this is encrypted before it is stored"}))
-    is_public = forms.BooleanField(required=False, label="Publish to the public feed")
+                                                        "placeholder": "nobody else can read this"}))
+    is_public = forms.BooleanField(required=False, label="Share this on the public feed")
 
 
 class MessageForm(forms.Form):
@@ -116,8 +116,8 @@ class MessageForm(forms.Form):
                             widget=forms.TextInput(attrs={"class": "input", "placeholder": "subject"}))
     body = forms.CharField(label="Message",
                            widget=forms.Textarea(attrs={"class": "input", "rows": 8,
-                                                        "placeholder": "sealed with the recipient's public key"}))
-    anonymous = forms.BooleanField(required=False, label="Send without my name")
+                                                        "placeholder": "only they will be able to read it"}))
+    anonymous = forms.BooleanField(required=False, label="Send this without my name")
 
     def clean_to(self):
         name = self.cleaned_data["to"].strip()
@@ -126,6 +126,6 @@ class MessageForm(forms.Form):
             raise forms.ValidationError("No account with that username.")
         if not recipient.public_key_pem:
             raise forms.ValidationError(
-                "That account has no messaging key yet, so nothing can be sealed for it."
+                "That account is not set up to receive messages yet."
             )
         return recipient.username
