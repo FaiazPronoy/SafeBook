@@ -47,7 +47,7 @@
   --panel-2: #fdf9fa;
   --ink: #1b1420;
   --ink-2: #4a3f52;
-  --muted: #6b5f74;
+  --muted: #5d5163;
   --line: #ebdfe5;
   --line-strong: #dcccd5;
 
@@ -55,13 +55,12 @@
   --shadow-2: 0 12px 34px rgba(45, 20, 40, .12);
   --ring: 0 0 0 3px rgba(216, 17, 89, .22);
 
-  --bloom-1: #ffc9dd;
-  --bloom-2: #ffe0b0;
-  --bloom-3: #e7d6ff;
-  --bloom-blur: 30px;
-  --bloom-opacity: .62;
-  --grid-line: rgba(94, 60, 88, .07);
-  --grid-opacity: 1;
+  --bloom-1: rgba(216, 17, 89, .20);
+  --bloom-2: rgba(240, 144, 13, .19);
+  --bloom-3: rgba(126, 61, 214, .15);
+  --bloom-4: rgba(240, 144, 13, .11);
+  --dot: rgba(88, 52, 82, .17);
+  --ring-line: rgba(216, 17, 89, .07);
   --card-bg: rgba(255, 255, 255, .82);
   --card-edge: rgba(255, 255, 255, .9);
 
@@ -102,13 +101,12 @@ html[data-theme="dark"] {
   --shadow-2: 0 16px 40px rgba(0, 0, 0, .5);
   --ring: 0 0 0 3px rgba(255, 77, 141, .3);
 
-  --bloom-1: #8f1140;
-  --bloom-2: #7a4a06;
-  --bloom-3: #3b2a6d;
-  --bloom-blur: 46px;
-  --bloom-opacity: .5;
-  --grid-line: rgba(198, 168, 214, .055);
-  --grid-opacity: 1;
+  --bloom-1: rgba(255, 60, 130, .17);
+  --bloom-2: rgba(255, 170, 32, .12);
+  --bloom-3: rgba(126, 84, 255, .18);
+  --bloom-4: rgba(255, 90, 150, .10);
+  --dot: rgba(214, 186, 228, .13);
+  --ring-line: rgba(255, 122, 168, .07);
   --card-bg: rgba(30, 24, 38, .78);
   --card-edge: rgba(255, 255, 255, .06);
 
@@ -129,21 +127,24 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The page sits on three layers: a base colour, a bloom of colour drifting
-   across the top of it, and a fine grid over both. The grid is what stops a
-   large empty area from reading as a blank wall. */
+/* The page sits on three layers: a base colour, blooms of colour anchored to
+   the corners, and a dot field over both. The dots are what stop a large
+   empty area reading as a blank wall, so they are drawn at a strength you
+   can actually see rather than a strength that only shows up in a
+   colour picker. */
 body::before {
   content: "";
   position: fixed;
-  inset: -20vmax;
+  inset: 0;
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(38rem 30rem at 8% -6%, var(--bloom-1), transparent 60%),
-    radial-gradient(34rem 26rem at 92% 2%, var(--bloom-2), transparent 58%),
-    radial-gradient(46rem 34rem at 60% 108%, var(--bloom-3), transparent 62%);
-  filter: blur(var(--bloom-blur));
-  opacity: var(--bloom-opacity);
+    radial-gradient(64rem 48rem at 2% -4%, var(--bloom-1), transparent 72%),
+    radial-gradient(58rem 44rem at 100% 6%, var(--bloom-2), transparent 70%),
+    radial-gradient(70rem 52rem at 40% 108%, var(--bloom-3), transparent 74%),
+    /* one broad wash so the middle of the page is not left flat between the
+       corners, which is where most of the reading happens */
+    radial-gradient(80rem 60rem at 62% 44%, var(--bloom-4), transparent 76%);
 }
 
 body::after {
@@ -153,14 +154,13 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size: 46px 46px;
-  /* fades out towards the middle of the page so the grid frames the content
-     rather than sitting behind the reading area */
-  -webkit-mask-image: radial-gradient(120% 80% at 50% 0%, #000 0%, transparent 72%);
-  mask-image: radial-gradient(120% 80% at 50% 0%, #000 0%, transparent 72%);
-  opacity: var(--grid-opacity);
+    /* the ring motif, bottom right, like the face of something that locks */
+    repeating-radial-gradient(circle at 88% 86%,
+      var(--ring-line) 0 1px, transparent 1px 26px),
+    /* and a dot field across the whole page */
+    radial-gradient(circle at center, var(--dot) 1.4px, transparent 1.5px);
+  background-size: 100% 100%, 24px 24px;
+  background-repeat: no-repeat, repeat;
 }
 
 h1, h2, h3 {
