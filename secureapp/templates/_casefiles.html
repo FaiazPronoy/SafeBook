@@ -1,0 +1,19 @@
+{% comment %}
+The demo accounts as manila folders. Each folder is its own small sign in
+form, so opening one works without any script at all.
+{% endcomment %}
+<div class="casefiles">
+  {% for f in demo %}
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="username" value="{{ f.username }}">
+      <input type="hidden" name="password" value="{{ f.password }}">
+      <button class="casefile" type="submit">
+        <span class="ref">File {{ f.ref }}</span>
+        <span class="who">{{ f.username|capfirst }}</span>
+        <span class="what">{{ f.about }}</span>
+        <span class="open-tag">Open &rarr;</span>
+      </button>
+    </form>
+  {% endfor %}
+</div>

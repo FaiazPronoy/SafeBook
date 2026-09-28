@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}SafeBook · a notebook the server cannot read{% endblock %}
+{% block content %}
+
+<section class="cover">
+  <div>
+    <div class="eyebrow">A private notebook and messenger</div>
+    <h1>Write it down. <span class="redact">Nobody</span> else can read it.</h1>
+    <p class="lede">SafeBook seals every note and message with a key that belongs to your
+      password. The server keeps the sealed copy and never holds the key, so even the
+      people running it cannot open your file.</p>
+    <div class="actions">
+      <a class="btn" href="#demo">Open a demo file</a>
+      <a class="btn-ghost" href="{% url 'register' %}">Start your own file</a>
+    </div>
+  </div>
+
+  <div class="two-sheets" aria-label="The same note, as you see it and as the server stores it">
+    <div class="sheet sheet-mine">
+      <h3>What you write</h3>
+      <span class="badge private">Private</span>
+      <p class="typed">Bank details. Account 4417, branch Mirpur. Only for me, and only
+        while I am signed in.</p>
+    </div>
+    <div class="sheet sheet-stored">
+      <h3>What the server stores</h3>
+      <span class="badge">Sealed</span>
+      <p class="typed">9f3a 51c0 e27b 0d84 6a19 f2ce 7b30 58de 1c4f a963 07e2 b5d1 3c8a 4f06
+        e9b7 2d15 80fa c63e 71b9 0e4d a2c8 5f17 3b6e d940 18c5 7a2f</p>
+    </div>
+  </div>
+</section>
+
+<section class="grid grid-3 promises" aria-label="What SafeBook promises">
+  <div class="card promise">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M9.5 12.5 8 22h8l-1.5-9.5"/></svg>
+    <h3>Your password is the only key</h3>
+    <p>The key that opens your notes is locked with your password. Forget it and your
+      recovery code is the one other way in. Nobody at SafeBook can reset it for you.</p>
+  </div>
+  <div class="card promise">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="1"/><path d="m2 7 10 7 10-7"/></svg>
+    <h3>A message opens for one person</h3>
+    <p>Each message is sealed for the person you send it to. Compare safety numbers once
+      and you know nobody swapped a key in between.</p>
+  </div>
+  <div class="card promise">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>
+    <h3>Tampering is refused, not shown</h3>
+    <p>Every row carries a seal of its own. If a single byte changes in the database, the
+      note is kept off the screen instead of shown with a warning beside it.</p>
+  </div>
+</section>
+
+{% if demo %}
+<section id="demo" class="card" style="padding: var(--s6)">
+  <div class="page-head" style="margin-bottom: var(--s3)">
+    <div>
+      <div class="eyebrow">Look around first</div>
+      <h2 style="font-size: 1.6rem">Open a demo file</h2>
+      <p class="muted">Three people already use this copy of SafeBook. Pick a folder and
+        you are signed in as them, with their notes and messages.</p>
+    </div>
+  </div>
+  {% include "_casefiles.html" %}
+</section>
+{% endif %}
+
+{% endblock %}

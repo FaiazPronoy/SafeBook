@@ -120,3 +120,28 @@ class LogoutTests(TestCase):
         from secureapp.session_keys import SESSION_FIELD
         self.client.post("/logout/")
         self.assertNotIn(SESSION_FIELD, self.client.session)
+
+    def test_an_idle_lock_says_why_it_happened(self):
+        """The page signs out by itself after fifteen idle minutes; the sign in
+        page then has to explain the sudden logout, not just say signed out."""
+        page = self.client.post("/logout/", {"reason": "idle"}, follow=True)
+        self.assertContains(page, "Locked after 15 minutes")
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+
+class DemoFileTests(TestCase):
+    """The sign in page offers the demo accounts only where they exist."""
+
+    def test_no_demo_files_on_an_empty_database(self):
+        self.assertEqual(Client().get("/login/").context["demo"], [])
+
+    def test_a_demo_file_signs_in_as_that_person(self):
+        from secureapp.demo import PEOPLE
+        username, password = PEOPLE[0][0], PEOPLE[0][1]
+        make_account(username, password)
+        demo = Client().get("/login/").context["demo"]
+        self.assertEqual([d["username"] for d in demo], [username])
+        client = Client()
+        client.post("/login/", {"username": username, "password": password})
+        self.assertEqual(client.get("/").status_code, 200)
+        self.assertIn("_auth_user_id", client.session)

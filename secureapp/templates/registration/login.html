@@ -1,28 +1,36 @@
 {% extends "base.html" %}
 {% block title %}Sign in · SafeBook{% endblock %}
 {% block content %}
-<div class="auth">
+<div class="signin">
   <div class="card">
     <div class="card-body">
       <div class="eyebrow">Sign in</div>
-      <h1>Welcome back</h1>
-      <p class="muted small">Your password unlocks your notes, so nobody here can sign in
-        as you or reset it for you.</p>
+      <h1>Open your file</h1>
+      <p class="muted small">Your password is what unlocks your notes, so nobody here can
+        sign in as you or reset it for you.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
         {% include "_form.html" %}
-        <button class="btn" type="submit" style="width:100%">Sign in</button>
+        <button class="btn block" type="submit">Open my file</button>
       </form>
 
       <p class="small muted" style="margin-top: var(--s5)">
-        No account? <a href="{% url 'register' %}">Create one</a>.
+        No file yet? <a href="{% url 'register' %}">Start one</a>.
         Forgotten your password? <a href="{% url 'recover' %}">Use your recovery code</a>.
       </p>
-      <div style="margin-top: var(--s4)">
-        {% include "_explain.html" with topic="signin" label="How is sign-in protected?" %}
-      </div>
+      {% include "_explain.html" with topic="signin" label="How is signing in protected?" %}
     </div>
   </div>
+
+  {% if demo %}
+    <section class="signin-side" aria-labelledby="demoTitle">
+      <div class="eyebrow">Look around first</div>
+      <h2 id="demoTitle">Or open a demo file</h2>
+      <p class="muted small">These three people already use this copy of SafeBook. Pick a
+        folder to sign in as them. Nothing to type.</p>
+      {% include "_casefiles.html" %}
+    </section>
+  {% endif %}
 </div>
 {% endblock %}

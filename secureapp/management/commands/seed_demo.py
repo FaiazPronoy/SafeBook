@@ -12,6 +12,7 @@ from django.db import transaction
 from keymgmt.services import get_active_kek
 from secureapp import keys
 from secureapp.crypto import aead_encrypt, new_key
+from secureapp.demo import PEOPLE
 from secureapp.mac import CTX_MESSAGE, CTX_POST, row_mac
 from secureapp.models import Message, Post
 from secureapp.recovery import new_recovery_code, normalise
@@ -21,11 +22,6 @@ from secureapp.views import (AAD_EMAIL, AAD_MSG_BODY, AAD_MSG_TITLE, AAD_PHONE,
 
 Account = get_user_model()
 
-PEOPLE = [
-    ("nusrat", "Nusrat#2026safe", "nusrat@safebook.test", "01711000001"),
-    ("faiaz", "Faiaz#2026safe", "faiaz@safebook.test", "01711000002"),
-    ("tanvir", "Tanvir#2026safe", "tanvir@safebook.test", "01711000003"),
-]
 
 POSTS = [
     ("nusrat", True, "Why I stopped trusting 'end to end' badges",

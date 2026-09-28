@@ -20,6 +20,7 @@ from . import keys
 from .auth_utils import (MAX_FAILURES, check_credentials, clear_failures,
                          is_locked_out, record_attempt, recent_failures)
 from .crypto import aead_decrypt, aead_encrypt, new_key
+from .demo import demo_files
 from .forms import (ChangePasswordForm, LoginForm, MessageForm, PostForm,
                     RecoverForm, RegisterForm)
 from .mac import CTX_MESSAGE, CTX_POST, mac_ok, row_mac
@@ -156,7 +157,7 @@ def login_view(request):
 
         if is_locked_out(username):
             flash.error(request, "Too many failed attempts. Try again in 15 minutes.")
-            return render(request, "registration/login.html", {"form": form})
+            return render(request, "registration/login.html", {"form": form, "demo": demo_files(Account)})
 
         user = check_credentials(username, password)
         if user is None:
@@ -165,7 +166,7 @@ def login_view(request):
             # the same sentence whether the account exists or not
             flash.error(request, "Wrong username or password."
                                  + (f" {left} attempts left." if left <= 2 else ""))
-            return render(request, "registration/login.html", {"form": form})
+            return render(request, "registration/login.html", {"form": form, "demo": demo_files(Account)})
 
         try:
             dek = keys.open_private_dek(user.pdek_wrapped, user.pdek_salt, password)
@@ -184,16 +185,18 @@ def login_view(request):
         arm_session(request, response, dek)         # so it has to happen after
         return response
 
-    return render(request, "registration/login.html", {"form": form})
+    return render(request, "registration/login.html", {"form": form, "demo": demo_files(Account)})
 
 
 @require_POST
 def logout_view(request):
     """POST only, so a link on another site cannot sign someone out."""
+    idle = request.POST.get("reason") == "idle"
     django_logout(request)
     response = redirect("login")
     disarm_session(request, response)
-    flash.info(request, "Signed out.")
+    flash.info(request, "Locked after 15 minutes without activity. Sign in to open your file again."
+               if idle else "Signed out.")
     return response
 
 
@@ -287,6 +290,13 @@ def change_password_view(request, dek):
 
 
 # ---------------------------------------------------------------- posts
+
+def home_view(request):
+    """The front page for visitors, and the owner's file for everyone else."""
+    if not request.user.is_authenticated:
+        return render(request, "landing.html", {"demo": demo_files(Account)})
+    return index_view(request)
+
 
 @needs_key
 def index_view(request, dek):

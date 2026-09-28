@@ -134,6 +134,14 @@ class AccessControlTests(TestCase):
         self.assertFalse(self.post.is_public)
 
     def test_signed_out_visitors_are_sent_to_the_login_page(self):
-        for url in ("/", "/feed/", "/messages/", "/account/", "/lab/", "/people/"):
+        for url in ("/feed/", "/messages/", "/account/", "/lab/", "/people/"):
             self.assertRedirects(Client().get(url), f"/login/?next={url}",
                                  fetch_redirect_response=False)
+
+    def test_the_front_page_is_public_and_shows_nobody_s_notes(self):
+        """Visitors get the front page; nothing of anyone's file is on it."""
+        response = Client().get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "landing.html")
+        self.assertNotContains(response, "Alice only")
+        self.assertNotContains(response, "not for bob")

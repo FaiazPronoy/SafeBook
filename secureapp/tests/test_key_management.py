@@ -5,7 +5,9 @@ All three are the same idea: rewrite an envelope, leave the data alone.
 
 import base64
 import os
+import tempfile
 from io import StringIO
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -60,7 +62,8 @@ class PasswordChangeTests(TestCase):
     def test_the_old_password_stops_working(self):
         self._change()
         stale = signed_in_as("alice", PASSWORD)
-        self.assertRedirects(stale.get("/"), "/login/?next=/", fetch_redirect_response=False)
+        self.assertRedirects(stale.get("/account/"), "/login/?next=/account/",
+                             fetch_redirect_response=False)
 
     def test_the_posts_are_still_readable_afterwards(self):
         self._change()
@@ -168,3 +171,30 @@ class KekRotationTests(TestCase):
         self._rotate()
         private.refresh_from_db()
         self.assertIsNone(private.key_public)
+
+
+class NewKeysTests(TestCase):
+    """new_keys --write fills a fresh .env, and never a finished one."""
+
+    def run_in(self, folder):
+        with override_settings(BASE_DIR=folder):
+            call_command("new_keys", "--write", stdout=StringIO())
+
+    def test_it_fills_the_placeholders(self):
+        with tempfile.TemporaryDirectory() as folder:
+            env = Path(folder) / ".env"
+            env.write_text((Path(settings.BASE_DIR) / ".env.example").read_text(encoding="utf-8"),
+                           encoding="utf-8")
+            self.run_in(Path(folder))
+            text = env.read_text(encoding="utf-8")
+            self.assertNotIn("put-32-random-bytes", text)
+            kek = [l for l in text.splitlines() if l.startswith("APP_KEK_BASE64=")][0].split("=", 1)[1]
+            self.assertEqual(len(base64.b64decode(kek)), 32)
+
+    def test_it_refuses_to_replace_a_real_key(self):
+        with tempfile.TemporaryDirectory() as folder:
+            env = Path(folder) / ".env"
+            env.write_text("SECRET_KEY=x\nAPP_KEK_BASE64=already-real\n", encoding="utf-8")
+            with self.assertRaises(CommandError):
+                self.run_in(Path(folder))
+            self.assertIn("already-real", env.read_text(encoding="utf-8"))

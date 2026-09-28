@@ -1,18 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Create account · SafeBook{% endblock %}
+{% block title %}Start a file · SafeBook{% endblock %}
 {% block content %}
 <div class="auth auth-wide">
   <div class="card">
     <div class="card-body">
-      <div class="eyebrow">Create account</div>
-      <h1>Somewhere to keep things</h1>
+      <div class="eyebrow">New file</div>
+      <h1>Start your own file</h1>
       <p class="muted small">Notes and messages that stay yours. Pick a password you can
         remember, because it is the only thing that opens them.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
         {% include "_form.html" %}
-        <button class="btn" type="submit" style="width:100%">Create my account</button>
+        <div class="strength" data-strength-for="id_password1" data-level="0" hidden>
+          <div class="strength-bar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <p class="strength-text" aria-live="polite"></p>
+        </div>
+        <button class="btn block" type="submit">Start my file</button>
       </form>
 
       <div class="note brand" style="margin-top: var(--s5)">

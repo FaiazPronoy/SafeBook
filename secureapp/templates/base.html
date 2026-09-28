@@ -4,7 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SafeBook{% endblock %}</title>
+  <meta name="description" content="SafeBook is a notebook and messenger where your password holds the key. The server keeps the envelope, and only you can open it.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Syne:wght@700;800&family=Work+Sans:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="{% static 'style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='5' fill='%23121417'/><circle cx='16' cy='13' r='5' fill='%23e04a52'/><path d='M13.4 16.5h5.2l1.6 9h-8.4z' fill='%23e04a52'/></svg>">
   <script>
     // set the theme before the first paint, so the page never flashes white
     (function () {
@@ -20,41 +25,56 @@
 <body>
 
 <header class="site-header">
-  <nav class="nav container">
-    <a class="brand" href="{% url 'index' %}">
-      <span class="brand-mark" aria-hidden="true">&#9679;</span>
-      SafeBook
-    </a>
-
-    {% with here=request.resolver_match.url_name %}
-    <div class="nav-links">
+  <div class="strip">
+    <div class="container strip-inner">
       {% if user.is_authenticated %}
-        <a href="{% url 'index' %}" {% if here == 'index' %}class="active"{% endif %}>Dashboard</a>
-        <a href="{% url 'feed' %}" {% if here == 'feed' or here == 'post_detail' %}class="active"{% endif %}>Feed</a>
-        <a href="{% url 'messages_inbox' %}" {% if 'message' in here %}class="active"{% endif %}>Messages</a>
-        <a href="{% url 'directory' %}" {% if here == 'directory' %}class="active"{% endif %}>People</a>
-        <a href="{% url 'lab' %}" {% if here|slice:":3" == 'lab' %}class="active"{% endif %}>How it works</a>
-      {% endif %}
-    </div>
-    {% endwith %}
-
-    <div class="nav-right">
-      <button id="theme" class="btn-quiet" type="button" aria-label="Switch theme">&#9682;</button>
-      {% if user.is_authenticated %}
-        <a class="chip" href="{% url 'account' %}" title="{{ user.username }}">
-          <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
-          <span class="uname">{{ user.username }}</span>
-        </a>
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button class="btn-ghost tiny" type="submit">Sign out</button>
-        </form>
+        <span class="file-line">File of <b>{{ user.username }}</b> &middot; opened {% now "j M Y, H:i" %}</span>
       {% else %}
-        <a class="btn-ghost tiny" href="{% url 'login' %}">Sign in</a>
-        <a class="btn tiny" href="{% url 'register' %}">Create account</a>
+        <span class="file-line">SafeBook &middot; a notebook the server cannot read</span>
       {% endif %}
+      <div class="strip-tools">
+        <button id="theme" class="strip-btn" type="button" aria-label="Switch between light and dark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+          <span class="uname">Theme</span>
+        </button>
+        {% if user.is_authenticated %}
+          <a class="strip-btn chip" href="{% url 'account' %}" title="Your account">
+            <span class="avatar">{{ user.username|slice:":1"|upper }}</span>
+            <span class="uname">{{ user.username }}</span>
+          </a>
+          <form method="post" action="{% url 'logout' %}" id="signOut">
+            {% csrf_token %}
+            <input type="hidden" name="reason" value="">
+            <button class="strip-btn" type="submit">Sign out</button>
+          </form>
+        {% else %}
+          <a class="strip-btn" href="{% url 'login' %}">Sign in</a>
+          <a class="strip-btn solid" href="{% url 'register' %}">Start a file</a>
+        {% endif %}
+      </div>
     </div>
-  </nav>
+  </div>
+
+  <div class="masthead">
+    <nav class="container mast-inner" aria-label="Main">
+      <a class="brand" href="{% url 'index' %}">
+        <svg class="brand-mark" viewBox="0 0 22 28" aria-hidden="true"><circle cx="11" cy="9" r="8" fill="currentColor"/><path d="M6.5 13h9l2.5 14h-14z" fill="currentColor"/><circle cx="11" cy="9" r="3" fill="var(--bg)"/></svg>
+        SafeBook
+      </a>
+
+      {% if user.is_authenticated %}
+        {% with here=request.resolver_match.url_name %}
+        <div class="nav-links">
+          <a href="{% url 'index' %}" {% if here == 'index' or here == 'post_new' %}class="active" aria-current="page"{% endif %}>My file</a>
+          <a href="{% url 'feed' %}" {% if here == 'feed' or here == 'post_detail' %}class="active" aria-current="page"{% endif %}>Shared</a>
+          <a href="{% url 'messages_inbox' %}" {% if 'message' in here %}class="active" aria-current="page"{% endif %}>Messages{% if unread_count %}<span class="count" aria-label="{{ unread_count }} unread">{{ unread_count }}</span>{% endif %}</a>
+          <a href="{% url 'directory' %}" {% if here == 'directory' %}class="active" aria-current="page"{% endif %}>People</a>
+          <a href="{% url 'lab' %}" {% if here|slice:":3" == 'lab' %}class="active" aria-current="page"{% endif %}>How it works</a>
+        </div>
+        {% endwith %}
+      {% endif %}
+    </nav>
+  </div>
 </header>
 
 {% if messages %}
@@ -73,7 +93,7 @@
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <span>SafeBook</span>
+    <span><b>SafeBook</b> &middot; a CSE447 project at BRAC University</span>
     <span>
       {% if user.is_authenticated %}<a href="{% url 'lab' %}">How it works</a> &middot; {% endif %}
       Your notes are locked with a key only your password opens.
@@ -83,43 +103,7 @@
 
 {% include "_dialogs.html" %}
 
-<script>
-  (function () {
-    var root = document.documentElement;
-    var button = document.getElementById("theme");
-    if (button) {
-      button.addEventListener("click", function () {
-        var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-        root.setAttribute("data-theme", next);
-        try { localStorage.setItem("safebook-theme", next); } catch (e) {}
-      });
-    }
-
-    // any button carrying data-explain opens the dialog with that id
-    document.addEventListener("click", function (event) {
-      var opener = event.target.closest("[data-explain]");
-      if (opener) {
-        var dialog = document.getElementById("x-" + opener.dataset.explain);
-        if (dialog && dialog.showModal) dialog.showModal();
-        return;
-      }
-      if (event.target.closest(".x-close")) {
-        event.target.closest("dialog").close();
-        return;
-      }
-      if (event.target.closest(".dismiss")) {
-        event.target.closest("li").remove();
-      }
-    });
-
-    // clicking the dimmed area outside the panel closes it too
-    document.querySelectorAll("dialog.explain").forEach(function (dialog) {
-      dialog.addEventListener("click", function (event) {
-        if (event.target === dialog) dialog.close();
-      });
-    });
-  })();
-</script>
+<script src="{% static 'app.js' %}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -14,24 +14,57 @@ Django 5, SQLite, and the `cryptography` library.
 
 ## Running it
 
+On Windows, double-click **`RUN-SafeBook.bat`**. It builds the virtual
+environment, writes a `.env` with fresh keys the first time, loads the demo
+files and opens http://127.0.0.1:8000/.
+
+By hand:
+
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-python manage.py new_keys
-```
-
-Paste the two printed values into `.env`, then:
-
-```bash
+python manage.py new_keys --write      # fills in both keys
 python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
 ```
 
-Open http://127.0.0.1:8000/. `seed_demo` prints three accounts and their
-recovery codes, once.
+`seed_demo` prints three accounts and their recovery codes, once.
+
+### Trying it
+
+The sign in page and the front page show the demo accounts as three folders.
+Pick one and you are signed in as that person; nothing to type.
+
+| File | Username | Password |
+|---|---|---|
+| 001 | `nusrat` | `Nusrat#2026safe` |
+| 002 | `faiaz` | `Faiaz#2026safe` |
+| 003 | `tanvir` | `Tanvir#2026safe` |
+
+### What it looks like
+
+A case file on a desk. A black strip across the top carries the file line and
+the account tools; the sections are manila folder tabs; states are rubber
+stamps (Private, Shared, Verified) in one crimson; keys, fingerprints and
+ciphertext are typed in Courier Prime. Headings are Syne and the reading type
+is Work Sans. Light and dark, and it works on a phone.
+
+### Small things that matter here
+
+- **A front page for visitors** that shows the same note twice: as you wrote
+  it, and as the server stores it.
+- **An eye on every password field**, and a **strength meter** on sign up
+  that says how long the password would last against a thousand machines at
+  SafeBook's scrypt setting. The password is the only key, so it is worth
+  saying.
+- **Locks itself after 15 idle minutes.** While you are signed in the server
+  can read your notes, so a session left open on a shared computer is the
+  weak point. The page signs out on its own and says why.
+- **Find a note** by its title on your file, and **copy** a safety number in
+  one click to paste into a chat you already trust.
 
 ---
 
@@ -218,12 +251,13 @@ cookie is a key with no ciphertext.
 python manage.py test
 ```
 
-**87 tests, all passing**, grouped by what each one defends:
+**93 tests, all passing**, grouped by what each one defends:
 
 - `test_primitives.py` - AAD binding, fresh nonces, MAC domain separation,
   length prefix collisions, scrypt salting
 - `test_auth.py` - the timing parity above, lockout, identical wording for
-  real and invented usernames, POST only logout
+  real and invented usernames, POST only logout, the idle lock, and the demo
+  folders appearing only where the demo accounts exist
 - `test_confidentiality.py` - the server KEK refusing to open a private post,
   plaintext absent from the row, IDOR on posts and messages, the feed
   carrying only what was published
@@ -231,8 +265,34 @@ python manage.py test
   off the screen, a row re-homed onto another user failing to verify
 - `test_key_management.py` - a password change and a recovery both leaving
   every ciphertext byte untouched, a spent recovery code, KEK rotation and
-  its dry run
+  its dry run, and `new_keys --write` refusing to replace a real key
 - `test_lab.py` - the numbers the lab pages print, asserted
+
+`tools/browser_checks.py` (Playwright, using the Edge that comes with
+Windows) opens every page signed out and signed in, in light and dark, and
+fails on any status other than 200, any console error, any text below WCAG AA
+contrast, or sideways scrolling at 390 px. It also opens a demo folder, tries
+the password eye, writes and deletes a note, and checks that signing out
+locks the file. Run it against `runserver 127.0.0.1:8010` on a seeded
+database.
+
+---
+
+## Deploying
+
+Any host that runs a Django app works; PythonAnywhere's free plan is enough.
+
+1. Upload the project, make a virtualenv and `pip install -r requirements.txt`.
+2. Copy `.env.example` to `.env`, run `python manage.py new_keys --write`, then
+   set `DEBUG=False` and `ALLOWED_HOSTS=yourname.pythonanywhere.com`.
+3. `python manage.py migrate`, `python manage.py seed_demo` if you want the
+   demo files, and `python manage.py collectstatic`.
+4. Point the web app at `safebook/wsgi.py`. WhiteNoise serves the stylesheet
+   and script, so no static file mapping is needed.
+
+With `DEBUG=False` the app turns on HTTPS redirects, secure cookies and HSTS.
+Keep the `.env` out of the server's public folders: the KEK in it is what
+opens the public posts.
 
 ---
 
