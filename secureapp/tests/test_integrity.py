@@ -3,35 +3,36 @@ beside it - not shown."""
 
 from django.test import TestCase
 
-from secureapp.models import Message, Post
+from secureapp.models import Comment, Message, Post
 
-from .test_auth import PASSWORD
 from .test_confidentiality import full_account, sign_in
+
+
+def flip(row, field):
+    raw = bytearray(getattr(row, field))
+    raw[0] ^= 0x01
+    setattr(row, field, bytes(raw))
+    row.save()
 
 
 class TamperedPostTests(TestCase):
     def setUp(self):
         full_account("alice")
         self.client = sign_in("alice")
-        self.client.post("/posts/new/",
-                         {"title": "Payroll", "body": "salary is 90000", "is_public": "on"})
+        self.client.post("/posts/new/", {"body": "salary is 90000", "audience": "public"})
         self.post = Post.objects.get(user__username="alice")
 
-    def _flip(self, field):
-        raw = bytearray(getattr(self.post, field))
-        raw[0] ^= 0x01
-        setattr(self.post, field, bytes(raw))
-        self.post.save()
-
     def test_a_flipped_body_is_not_shown_to_the_owner(self):
-        self._flip("body_ct")
+        flip(self.post, "body_ct")
         response = self.client.get(f"/posts/{self.post.id}/", follow=True)
         self.assertNotContains(response, "salary is 90000")
         self.assertContains(response, "could not be opened")
 
-    def test_a_flipped_body_is_dropped_from_the_feed(self):
-        self._flip("body_ct")
-        self.assertNotContains(sign_in("alice").get("/feed/"), "Payroll")
+    def test_a_flipped_body_is_dropped_from_the_feed_and_counted(self):
+        flip(self.post, "body_ct")
+        response = self.client.get("/")
+        self.assertNotContains(response, "salary is 90000")
+        self.assertEqual(response.context["unreadable"], 1)
 
     def test_a_wrecked_mac_is_not_shown(self):
         self.post.mac = b"\x00" * 32
@@ -45,65 +46,74 @@ class TamperedPostTests(TestCase):
         self.assertNotContains(self.client.get(f"/posts/{self.post.id}/", follow=True),
                                "salary is 90000")
 
-    def test_the_dashboard_counts_the_rows_it_could_not_verify(self):
-        self._flip("title_ct")
-        response = self.client.get("/")
-        self.assertEqual(response.context["unreadable"], 1)
-
     def test_a_row_swapped_onto_another_owner_does_not_verify(self):
         """The MAC covers the owner id, so a row cannot be re-homed."""
         bob, _, _ = full_account("bob")
         self.post.user = bob
         self.post.save()
-        self.assertNotContains(sign_in("bob").get("/feed/"), "Payroll")
+        self.assertNotContains(sign_in("bob").get("/feed/"), "salary is 90000")
+
+
+class TamperedCommentTests(TestCase):
+    def setUp(self):
+        full_account("alice")
+        self.client = sign_in("alice")
+        self.client.post("/posts/new/", {"body": "a public post", "audience": "public"})
+        self.post = Post.objects.get()
+        self.client.post(f"/posts/{self.post.id}/comments/", {"body": "meet at gate 3"})
+        self.comment = Comment.objects.get()
+
+    def test_a_comment_arrives_intact(self):
+        self.assertContains(self.client.get(f"/posts/{self.post.id}/"), "meet at gate 3")
+
+    def test_a_flipped_comment_is_hidden(self):
+        flip(self.comment, "body_ct")
+        response = self.client.get(f"/posts/{self.post.id}/")
+        self.assertNotContains(response, "meet at gate 3")
+        self.assertContains(response, "failed its check")
+
+    def test_a_comment_moved_under_another_post_does_not_verify(self):
+        """The MAC names the post, so a comment cannot be lifted elsewhere."""
+        self.client.post("/posts/new/", {"body": "another post", "audience": "public"})
+        other = Post.objects.exclude(id=self.post.id).get()
+        self.comment.post = other
+        self.comment.save()
+        self.assertNotContains(self.client.get(f"/posts/{other.id}/"), "meet at gate 3")
 
 
 class TamperedMessageTests(TestCase):
     def setUp(self):
         full_account("alice")
         full_account("bob")
-        sender = sign_in("alice")
-        sender.post("/messages/new/",
-                    {"to": "bob", "title": "Handover", "body": "the door code is 8890"})
+        sign_in("alice").post("/messages/bob/", {"body": "the door code is 8890"})
         self.message = Message.objects.get()
         self.reader = sign_in("bob")
 
     def test_a_message_arrives_intact(self):
-        self.assertContains(self.reader.get(f"/messages/{self.message.id}/"),
-                            "the door code is 8890")
+        self.assertContains(self.reader.get("/messages/alice/"), "the door code is 8890")
 
     def test_a_flipped_body_is_not_shown(self):
-        raw = bytearray(self.message.body_ct)
-        raw[0] ^= 0x01
-        self.message.body_ct = bytes(raw)
-        self.message.save()
-        response = self.reader.get(f"/messages/{self.message.id}/", follow=True)
+        flip(self.message, "body_ct")
+        response = self.reader.get("/messages/alice/")
         self.assertNotContains(response, "the door code is 8890")
         self.assertContains(response, "could not be opened")
 
     def test_a_message_cannot_be_read_by_anyone_else(self):
         full_account("carol")
-        response = sign_in("carol").get(f"/messages/{self.message.id}/", follow=True)
-        self.assertNotContains(response, "the door code is 8890")
+        carol = sign_in("carol")
+        self.assertNotContains(carol.get("/messages/alice/"), "the door code is 8890")
+        self.assertNotContains(carol.get("/messages/bob/"), "the door code is 8890")
 
     def test_the_sender_keeps_a_readable_copy(self):
-        self.assertContains(sign_in("alice").get("/messages/sent/"), "Handover")
+        self.assertContains(sign_in("alice").get("/messages/bob/"), "the door code is 8890")
 
-    def test_an_anonymous_message_keeps_no_sender_copy(self):
-        alice = sign_in("alice")
-        alice.post("/messages/new/", {"to": "bob", "title": "Tip off",
-                                      "body": "look at the ledger", "anonymous": "on"})
-        anonymous = Message.objects.get(is_anonymous=True)
-        self.assertIsNone(anonymous.key_for_sender)
-        self.assertIsNone(anonymous.sender)
-        self.assertNotContains(alice.get("/messages/sent/"), "Tip off")
+    def test_the_two_copies_of_the_key_are_different_blobs(self):
+        """One is locked for bob, the other for alice. Neither is the key."""
+        self.assertNotEqual(bytes(self.message.key_for_recipient), bytes(self.message.key_for_sender))
+        self.assertNotIn(b"8890", bytes(self.message.body_ct))
 
-    def test_the_recipient_is_not_told_who_sent_it(self):
-        alice = sign_in("alice")
-        alice.post("/messages/new/", {"to": "bob", "title": "Tip off",
-                                      "body": "look at the ledger", "anonymous": "on"})
-        rows = self.reader.get("/messages/").context["inbox"]
-        anonymous = next(row for row in rows if row["title"] == "Tip off")
-        named = next(row for row in rows if row["title"] == "Handover")
-        self.assertEqual(anonymous["sender"], "Anonymous")
-        self.assertEqual(named["sender"], "alice")
+    def test_reading_marks_it_read(self):
+        self.assertIsNone(self.message.read_at)
+        self.reader.get("/messages/alice/")
+        self.message.refresh_from_db()
+        self.assertIsNotNone(self.message.read_at)

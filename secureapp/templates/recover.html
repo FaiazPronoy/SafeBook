@@ -1,28 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Recover your account · SafeBook{% endblock %}
 {% block content %}
-<div class="auth auth-wide">
-  <div class="card">
+<div class="auth-one">
+  <section class="card auth-card">
     <div class="card-body">
-      <div class="eyebrow">Recovery</div>
       <h1>Use your recovery code</h1>
-      <p class="muted small">The code opens your account so you can set a new password.
-        Everything you have saved stays exactly where it is.</p>
+      <p class="muted small">The code opens your keys so you can set a new password. Your posts,
+        friends and chats stay exactly where they are.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
         {% include "_form.html" %}
-        <button class="btn" type="submit" style="width:100%">Unlock and set a new password</button>
+        <button class="btn block big" type="submit">Unlock and set a new password</button>
       </form>
 
-      <div class="note amber" style="margin-top: var(--s5)">
-        <span>Without the code there is nothing anyone can do here. A reset by itself
-          would not open your notes, so nobody can offer you one.</span>
-      </div>
-      <div style="margin-top: var(--s4)">
-        {% include "_explain.html" with topic="recovery" label="Why is that?" %}
-      </div>
+      <p class="note warn" style="margin-top: var(--s5)">
+        <span>Without the code there is nothing anyone can do here. A plain reset would not
+          open your keys, so nobody can offer you one.</span></p>
+      {% include "_explain.html" with topic="recovery" label="Why is that?" %}
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

@@ -1,0 +1,15 @@
+{% load sb %}
+<nav class="side" aria-label="Shortcuts">
+  <a class="side-me" href="{% url 'profile' user.username %}">{% avatar user link=False %}<span>{{ user.name }}</span></a>
+  <a href="{% url 'friends' %}">{% icon "friends" %}<span>Friends</span>{% if request_count %}<b class="dot">{{ request_count }}</b>{% endif %}</a>
+  <a href="{% url 'messages_inbox' %}">{% icon "chat" %}<span>Chats</span>{% if unread_count %}<b class="dot">{{ unread_count }}</b>{% endif %}</a>
+  <a href="{% url 'account' %}">{% icon "settings" %}<span>Settings and security</span></a>
+  <a href="{% url 'lab' %}">{% icon "lab" %}<span>Crypto lab</span></a>
+
+  <div class="side-card">
+    <p class="side-title">{% icon "shield" %} Your safety number</p>
+    <p class="mono small">{{ user.key_fingerprint|slice:":19" }}</p>
+    <p class="small muted">Friends compare it with theirs to be sure nobody swapped your key.</p>
+    {% include "_explain.html" with topic="safety-number" label="What is this?" %}
+  </div>
+</nav>

@@ -1,0 +1,21 @@
+{% comment %}
+The demo accounts as cards. Each card is its own small sign in form, so
+picking one works without any script at all.
+{% endcomment %}
+<div class="demo-people">
+  {% for d in demo %}
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="username" value="{{ d.username }}">
+      <input type="hidden" name="password" value="{{ d.password }}">
+      <button class="demo-card" type="submit">
+        <span class="av lg" style="--h: {{ d.hue }}" aria-hidden="true">{{ d.initials }}</span>
+        <span class="demo-text">
+          <b>{{ d.name }}</b>
+          <span>{{ d.about }}</span>
+        </span>
+        <span class="demo-go">Sign in as {{ d.first }}</span>
+      </button>
+    </form>
+  {% endfor %}
+</div>

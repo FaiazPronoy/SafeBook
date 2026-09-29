@@ -1,11 +1,10 @@
 from django.urls import path
 
-from . import lab, views
+from . import chat, lab, social, views
 
 urlpatterns = [
-    path("", views.home_view, name="index"),
-    path("feed/", views.feed_view, name="feed"),
-    path("people/", views.directory_view, name="directory"),
+    path("", social.home_view, name="index"),
+    path("feed/", social.feed_view, name="feed"),
 
     path("register/", views.register_view, name="register"),
     path("register/recovery-code/", views.recovery_code_view, name="recovery_code"),
@@ -14,18 +13,23 @@ urlpatterns = [
     path("recover/", views.recover_view, name="recover"),
 
     path("account/", views.account_view, name="account"),
+    path("account/profile/", views.profile_edit_view, name="profile_edit"),
     path("account/password/", views.change_password_view, name="change_password"),
 
-    path("posts/new/", views.post_new_view, name="post_new"),
-    path("posts/<int:post_id>/", views.post_detail_view, name="post_detail"),
-    path("posts/<int:post_id>/visibility/", views.post_visibility_view, name="post_visibility"),
-    path("posts/<int:post_id>/delete/", views.post_delete_view, name="post_delete"),
+    path("posts/new/", social.post_new_view, name="post_new"),
+    path("posts/<int:post_id>/", social.post_detail_view, name="post_detail"),
+    path("posts/<int:post_id>/audience/", social.post_audience_view, name="post_audience"),
+    path("posts/<int:post_id>/delete/", social.post_delete_view, name="post_delete"),
+    path("posts/<int:post_id>/like/", social.post_like_view, name="post_like"),
+    path("posts/<int:post_id>/comments/", social.comment_new_view, name="comment_new"),
+    path("comments/<int:comment_id>/delete/", social.comment_delete_view, name="comment_delete"),
 
-    path("messages/", views.messages_inbox_view, name="messages_inbox"),
-    path("messages/sent/", views.messages_sent_view, name="messages_sent"),
-    path("messages/new/", views.message_new_view, name="message_new"),
-    path("messages/new/<str:to>/", views.message_new_view, name="message_to"),
-    path("messages/<int:msg_id>/", views.message_detail_view, name="message_detail"),
+    path("friends/", social.friends_view, name="friends"),
+    path("friends/<str:username>/<str:action>/", social.friend_action_view, name="friend_action"),
+    path("u/<str:username>/", social.profile_view, name="profile"),
+
+    path("messages/", chat.inbox_view, name="messages_inbox"),
+    path("messages/<str:username>/", chat.thread_view, name="message_thread"),
 
     path("lab/", lab.lab_index, name="lab"),
     path("lab/modes/", lab.modes_view, name="lab_modes"),

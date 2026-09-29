@@ -1,26 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Your recovery code · SafeBook{% endblock %}
 {% block content %}
-<div class="auth auth-wide">
-  <div class="card is-private">
+<div class="auth-one">
+  <section class="card auth-card">
     <div class="card-body">
-      <div class="eyebrow">Shown once</div>
+      <p class="eyebrow">Shown once</p>
       <h1>Write this down before you go on</h1>
-      <p class="muted">This is the second key to <b>{{ username }}</b>. If you forget your
+      <p class="muted">This is the second key to <b>@{{ username }}</b>. If you forget your
         password, it is the only way back in.</p>
 
       <div class="recovery-code">{{ code }}</div>
 
-      <div class="note amber" style="margin-top: var(--s5)">
-        <span>SafeBook keeps no readable copy of this. Leave this page without it and
-          nobody, including whoever runs the server, can print it again.</span>
-      </div>
+      <p class="note warn" style="margin-top: var(--s5)">
+        <span>SafeBook keeps no readable copy of this. Leave the page without it and nobody,
+          including whoever runs the server, can show it to you again.</span></p>
 
       <div class="actions" style="margin-top: var(--s5)">
         <a class="btn" href="{% url 'login' %}">I have written it down</a>
         {% include "_explain.html" with topic="recovery" label="Why do I need this?" %}
       </div>
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

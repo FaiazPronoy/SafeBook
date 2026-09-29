@@ -1,35 +1,33 @@
 {% extends "base.html" %}
 {% block title %}Sign in · SafeBook{% endblock %}
 {% block content %}
-<div class="signin">
-  <div class="card">
+<div class="auth-split">
+  <section class="card auth-card">
     <div class="card-body">
-      <div class="eyebrow">Sign in</div>
-      <h1>Open your file</h1>
-      <p class="muted small">Your password is what unlocks your notes, so nobody here can
-        sign in as you or reset it for you.</p>
+      <h1>Welcome back</h1>
+      <p class="muted small">Your password also unlocks your keys, so nobody here can sign in as
+        you or reset it for you.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
         {% include "_form.html" %}
-        <button class="btn block" type="submit">Open my file</button>
+        <button class="btn block big" type="submit">Sign in</button>
       </form>
 
-      <p class="small muted" style="margin-top: var(--s5)">
-        No file yet? <a href="{% url 'register' %}">Start one</a>.
-        Forgotten your password? <a href="{% url 'recover' %}">Use your recovery code</a>.
+      <p class="small muted auth-links">
+        New here? <a href="{% url 'register' %}">Create an account</a><br>
+        Forgot your password? <a href="{% url 'recover' %}">Use your recovery code</a>
       </p>
       {% include "_explain.html" with topic="signin" label="How is signing in protected?" %}
     </div>
-  </div>
+  </section>
 
   {% if demo %}
-    <section class="signin-side" aria-labelledby="demoTitle">
-      <div class="eyebrow">Look around first</div>
-      <h2 id="demoTitle">Or open a demo file</h2>
-      <p class="muted small">These three people already use this copy of SafeBook. Pick a
-        folder to sign in as them. Nothing to type.</p>
-      {% include "_casefiles.html" %}
+    <section class="auth-demo" aria-labelledby="demoTitle">
+      <h2 id="demoTitle">Or try a demo account</h2>
+      <p class="muted small">Pick a person to sign in as them. Nothing to type.</p>
+      {% include "_demo_people.html" %}
     </section>
   {% endif %}
 </div>

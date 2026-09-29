@@ -1,68 +1,108 @@
 {% extends "base.html" %}
-{% block title %}SafeBook · a notebook the server cannot read{% endblock %}
+{% load sb %}
+{% block title %}SafeBook · share with friends, not with the server{% endblock %}
 {% block content %}
 
-<section class="cover">
-  <div>
-    <div class="eyebrow">A private notebook and messenger</div>
-    <h1>Write it down. <span class="redact">Nobody</span> else can read it.</h1>
-    <p class="lede">SafeBook seals every note and message with a key that belongs to your
-      password. The server keeps the sealed copy and never holds the key, so even the
-      people running it cannot open your file.</p>
+<section class="hero">
+  <div class="hero-text">
+    <p class="eyebrow">{% icon "lock" %} Encrypted social network</p>
+    <h1>Share with friends. <span class="hl">Not with us.</span></h1>
+    <p class="lede">SafeBook works like the social apps you know: post, comment, like and
+      chat with friends. The difference is that everything is locked before it is saved,
+      with keys that only you and the people you choose hold. The server stores your posts
+      without a key of its own.</p>
     <div class="actions">
-      <a class="btn" href="#demo">Open a demo file</a>
-      <a class="btn-ghost" href="{% url 'register' %}">Start your own file</a>
+      <a class="btn big" href="#try">Try a demo account</a>
+      <a class="btn-soft big" href="{% url 'register' %}">Create an account</a>
     </div>
   </div>
 
-  <div class="two-sheets" aria-label="The same note, as you see it and as the server stores it">
-    <div class="sheet sheet-mine">
-      <h3>What you write</h3>
-      <span class="badge private">Private</span>
-      <p class="typed">Bank details. Account 4417, branch Mirpur. Only for me, and only
-        while I am signed in.</p>
-    </div>
-    <div class="sheet sheet-stored">
-      <h3>What the server stores</h3>
-      <span class="badge">Sealed</span>
-      <p class="typed">9f3a 51c0 e27b 0d84 6a19 f2ce 7b30 58de 1c4f a963 07e2 b5d1 3c8a 4f06
-        e9b7 2d15 80fa c63e 71b9 0e4d a2c8 5f17 3b6e d940 18c5 7a2f</p>
+  <div class="hero-demo" aria-label="One post, as a friend sees it and as the server stores it">
+    <article class="card post mock">
+      <header class="post-head">
+        <span class="av" style="--h: 200" aria-hidden="true">NJ</span>
+        <div class="who"><span class="nm">Nusrat Jahan</span>
+          <div class="meta">20 hours ago · <span class="aud aud-friends">{% icon "users" %}<span>Friends</span></span></div></div>
+      </header>
+      <div class="post-body">Passed the viva! They asked why a friends-only post needs a key for
+        every friend, and I got to draw this app on the whiteboard.</div>
+      <p class="lockline lock-friends">{% icon "key" %} Encrypted for Nusrat and her 3 friends.</p>
+    </article>
+    <div class="server-view">
+      <p class="server-label">{% icon "server" %} The same post in SafeBook's database</p>
+      <p class="hex">9f3a51c0e27b0d846a19f2ce7b3058de1c4fa96307e2b5d13c8a4f06e9b72d1580fac63e71b90e4da2c85f173b6ed94018c57a2f…</p>
+      <p class="small">The server holds no key to this. The keys are with Nusrat and her friends.</p>
     </div>
   </div>
 </section>
 
-<section class="grid grid-3 promises" aria-label="What SafeBook promises">
-  <div class="card promise">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M9.5 12.5 8 22h8l-1.5-9.5"/></svg>
-    <h3>Your password is the only key</h3>
-    <p>The key that opens your notes is locked with your password. Forget it and your
-      recovery code is the one other way in. Nobody at SafeBook can reset it for you.</p>
+<section class="features" aria-labelledby="featTitle">
+  <h2 id="featTitle">What you can do</h2>
+  <div class="feature-grid">
+    <div class="feature">
+      <span class="f-ico">{% icon "users" %}</span>
+      <h3>Post to the right people</h3>
+      <p>Pick <b>Friends</b>, <b>Public</b> or <b>Only me</b> for every post, and change it
+        later. The choice decides who gets a key, not just who sees a button.</p>
+    </div>
+    <div class="feature">
+      <span class="f-ico">{% icon "comment" %}</span>
+      <h3>Comment and like</h3>
+      <p>Comments are locked with the same key as the post, so exactly the people who can
+        read a post can read the conversation under it.</p>
+    </div>
+    <div class="feature">
+      <span class="f-ico">{% icon "chat" %}</span>
+      <h3>Chat in private</h3>
+      <p>Each message is sealed for the two people in the chat. Scroll back through your
+        history; SafeBook keeps no key to any of it.</p>
+    </div>
+    <div class="feature">
+      <span class="f-ico">{% icon "shield" %}</span>
+      <h3>Check a friend's key</h3>
+      <p>Every profile shows a safety number. Compare it with a friend in person and you
+        know nobody swapped their key for another.</p>
+    </div>
   </div>
-  <div class="card promise">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="1"/><path d="m2 7 10 7 10-7"/></svg>
-    <h3>A message opens for one person</h3>
-    <p>Each message is sealed for the person you send it to. Compare safety numbers once
-      and you know nobody swapped a key in between.</p>
-  </div>
-  <div class="card promise">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>
-    <h3>Tampering is refused, not shown</h3>
-    <p>Every row carries a seal of its own. If a single byte changes in the database, the
-      note is kept off the screen instead of shown with a warning beside it.</p>
+</section>
+
+<section class="who-reads card" aria-labelledby="whoTitle">
+  <div class="card-body">
+    <h2 id="whoTitle">Who can read what</h2>
+    <p class="muted">Not a privacy setting on top of a readable database. Each tick below is a
+      person holding a key; each cross is somebody who does not have one.</p>
+    <div class="table-wrap">
+      <table class="matrix">
+        <thead>
+          <tr><th scope="col"></th><th scope="col">You</th><th scope="col">Your friends</th>
+              <th scope="col">Everyone else</th><th scope="col">SafeBook's server</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">{% icon "lock" %} Only me posts</th>
+            <td class="y">{% icon "check" "yes" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
+          <tr><th scope="row">{% icon "users" %} Friends posts and their comments</th>
+            <td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
+          <tr><th scope="row">{% icon "globe" %} Public posts</th>
+            <td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td></tr>
+          <tr><th scope="row">{% icon "chat" %} Chats</th>
+            <td class="y">{% icon "check" "yes" %}</td><td class="muted">only the one you chat with</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted">What the server does see: who is friends with whom, who liked
+      what, when things were posted, and your name and bio. And while you are signed in,
+      the server uses your key to show you your own things; sign out and it holds nothing
+      that opens them. Hiding all of that would need the encryption to run in your browser,
+      which is a different kind of app, and SafeBook says so rather than pretend.</p>
   </div>
 </section>
 
 {% if demo %}
-<section id="demo" class="card" style="padding: var(--s6)">
-  <div class="page-head" style="margin-bottom: var(--s3)">
-    <div>
-      <div class="eyebrow">Look around first</div>
-      <h2 style="font-size: 1.6rem">Open a demo file</h2>
-      <p class="muted">Three people already use this copy of SafeBook. Pick a folder and
-        you are signed in as them, with their notes and messages.</p>
-    </div>
-  </div>
-  {% include "_casefiles.html" %}
+<section id="try" class="try" aria-labelledby="tryTitle">
+  <h2 id="tryTitle">Try it as one of them</h2>
+  <p class="muted">These people already use this copy of SafeBook. Pick one and you are signed
+    in as them, with their friends, posts and chats. Nothing to type.</p>
+  {% include "_demo_people.html" %}
 </section>
 {% endif %}
 

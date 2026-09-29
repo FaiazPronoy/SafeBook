@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Delete note · SafeBook{% endblock %}
+{% block title %}Delete post · SafeBook{% endblock %}
 {% block content %}
-<div class="auth">
-  <div class="card is-broken">
-    <div class="card-head"><h2>Delete this note?</h2></div>
+<div class="auth-one">
+  <section class="card auth-card">
     <div class="card-body">
-      <p><b>{{ title }}</b></p>
-      <p class="muted small">The note and its key both go. There is no undo, and nothing
-        is left behind that could be used to get it back.</p>
+      <h1>Delete this post?</h1>
+      {% if body %}<blockquote class="quote">{{ body|truncatewords:40 }}</blockquote>{% endif %}
+      <p class="muted small">The post, its comments and every copy of its key go together.
+        There is no undo.</p>
       <form method="post">
         {% csrf_token %}
         <div class="actions">
-          <button class="btn danger" type="submit">Delete permanently</button>
-          <a class="btn-ghost" href="{% url 'post_detail' post.id %}">Keep it</a>
+          <button class="btn danger" type="submit">Delete post</button>
+          <a class="btn-soft" href="{% url 'post_detail' post.id %}">Keep it</a>
         </div>
       </form>
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

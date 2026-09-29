@@ -1,36 +1,46 @@
 {% extends "base.html" %}
-{% block title %}Account · SafeBook{% endblock %}
+{% load sb %}
+{% block title %}Settings and security · SafeBook{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow">Account</div>
-    <h1>{{ user.username|capfirst }}</h1>
+    <h1>Settings and security</h1>
+    <p class="muted">Your profile, your password, and what the database holds about you.</p>
   </div>
 </div>
 
 <div class="dash">
-  <section class="card col-6 is-private">
-    <div class="card-head">
-      <h2>Your details</h2>
-      {% include "_explain.html" with topic="vault" label="Who can see these?" %}
+  <section class="card col-6">
+    <div class="card-head"><h2>{% icon "user" %} Public profile</h2><span class="aud aud-public">{% icon "globe" %}<span>Anyone can see</span></span></div>
+    <div class="card-body">
+      <form method="post" action="{% url 'profile_edit' %}" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" with form=profile_form %}
+        <button class="btn" type="submit">Save profile</button>
+      </form>
     </div>
+  </section>
+
+  <section class="card col-6">
+    <div class="card-head"><h2>{% icon "lock" %} Private details</h2><span class="aud aud-me">{% icon "lock" %}<span>Only you</span></span></div>
     <div class="card-body">
       <dl class="kv">
         <dt>Email</dt><dd>{{ email|default:"not set" }}</dd>
         <dt>Phone</dt><dd>{{ phone|default:"not set" }}</dd>
       </dl>
-      <p class="small muted" style="margin-top: var(--s5)">These are visible on this page
-        and nowhere else. They are locked in the database like everything else you keep here.</p>
-      <div class="grid grid-2" style="margin-top: var(--s4)">
-        <div class="stat brand"><div class="n brand">{{ private_posts }}</div><div class="l">private notes</div></div>
-        <div class="stat amber"><div class="n amber">{{ public_posts }}</div><div class="l">shared notes</div></div>
+      <p class="small muted">Shown on this page and nowhere else. In the database they are
+        encrypted under your password key like your only-me posts.</p>
+      <div class="stats">
+        <div class="stat"><b>{{ counts.me }}</b><span>only me</span></div>
+        <div class="stat"><b>{{ counts.friends }}</b><span>friends</span></div>
+        <div class="stat"><b>{{ counts.public }}</b><span>public</span></div>
       </div>
     </div>
   </section>
 
   <section class="card col-6">
     <div class="card-head">
-      <h2>Change password</h2>
+      <h2>{% icon "key" %} Change password</h2>
       {% include "_explain.html" with topic="password" label="Will I lose anything?" %}
     </div>
     <div class="card-body">
@@ -39,26 +49,24 @@
         {% include "_form.html" %}
         <button class="btn" type="submit">Change password</button>
       </form>
-      <div class="note verified" style="margin-top: var(--s4)">
-        <span>Nothing you have written is touched. Only the lock around your key
-          is rebuilt, so this is instant however much you have saved.</span>
-      </div>
-    </div>
-  </section>
-
-  <section class="card col-6 is-verified">
-    <div class="card-head">
-      <h2>Your safety number</h2>
-      {% include "_explain.html" with topic="safety-number" label="What is this for?" %}
-    </div>
-    <div class="card-body">
-      <div class="fingerprint">{{ fingerprint }}</div>
-      <p class="small muted" style="margin-top: var(--s4)">Read it out to people you write
-        to. If their copy matches, nothing has been swapped in between.</p>
+      <p class="note ok" style="margin-top: var(--s4)"><span>Nothing you have posted is touched.
+        Only the lock around your key is rebuilt, so this is instant.</span></p>
     </div>
   </section>
 
   <section class="card col-6">
+    <div class="card-head">
+      <h2>{% icon "shield" %} Your safety number</h2>
+      {% include "_explain.html" with topic="safety-number" label="What is this for?" %}
+    </div>
+    <div class="card-body">
+      <div class="fingerprint">{{ fingerprint }}</div>
+      <p class="small muted" style="margin-top: var(--s4)">Read it out to a friend. If their
+        copy matches, nobody has swapped your key on the way to them.</p>
+    </div>
+  </section>
+
+  <section class="card col-12">
     <div class="card-head">
       <h2>Recent sign-ins</h2>
       {% include "_explain.html" with topic="signin" label="How is this protected?" %}
@@ -79,21 +87,17 @@
           </tbody>
         </table>
       </div>
-      <div class="card-foot muted">If you see something here you did not do, change your
-        password.</div>
+      <div class="card-foot muted">If you see something here you did not do, change your password.</div>
     {% else %}
-      <div class="empty"><h3>Nothing recorded yet</h3></div>
+      <div class="card-body"><p class="muted">Nothing recorded yet.</p></div>
     {% endif %}
   </section>
 
   <section class="card col-12">
-    <div class="card-head">
-      <h2>Your key, as the database holds it</h2>
-      <span class="badge plain">for the curious</span>
-    </div>
+    <div class="card-head"><h2>Your key, as the database holds it</h2><span class="badge plain">for the curious</span></div>
     <div class="card-body">
-      <p class="small muted">This is the sealed copy of your key. Without your password
-        it is 60 bytes of nothing, and it is all the server has.</p>
+      <p class="small muted">This is the sealed copy of your key. Without your password it is
+        60 bytes of nothing, and it is all the server has.</p>
       <div class="hex">{{ envelope_hex }}</div>
     </div>
   </section>

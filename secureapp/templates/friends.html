@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load sb %}
+{% block title %}Friends · SafeBook{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Friends</h1>
+    <p class="muted">A friend gets a key to every post you share with friends, and you get a key to theirs.</p>
+  </div>
+  <form class="find" method="get" role="search">
+    {% icon "search" %}
+    <label class="sr-only" for="q">Search people</label>
+    <input id="q" name="q" type="search" value="{{ q }}" placeholder="Search by name">
+  </form>
+</div>
+
+{% if received %}
+  <section class="block">
+    <h2>Friend requests <span class="count">{{ received|length }}</span></h2>
+    <div class="people">
+      {% for r in received %}
+        <div class="person card">
+          {% avatar r.from_user "lg" %}
+          <a class="nm" href="{% url 'profile' r.from_user.username %}">{{ r.from_user.name }}</a>
+          <p class="small muted">{{ r.from_user.bio|default:"On SafeBook" }}</p>
+          <form method="post" action="{% url 'friend_action' r.from_user.username 'accept' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn block" type="submit">Confirm</button></form>
+          <form method="post" action="{% url 'friend_action' r.from_user.username 'decline' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn-soft block" type="submit">Delete</button></form>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+<section class="block">
+  <h2>Your friends <span class="count">{{ friends|length }}</span></h2>
+  {% if friends %}
+    <div class="list card">
+      {% for f in friends %}
+        <div class="row">
+          {% avatar f %}
+          <div class="row-main">
+            <a class="nm" href="{% url 'profile' f.username %}">{{ f.name }}</a>
+            <span class="small muted mono">{{ f.key_fingerprint|slice:":19" }}</span>
+          </div>
+          <a class="btn-soft small-btn" href="{% url 'message_thread' f.username %}">{% icon "chat" %} Message</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">{% if q %}No friends match "{{ q }}".{% else %}No friends yet. Add someone below.{% endif %}</p>
+  {% endif %}
+</section>
+
+<section class="block">
+  <h2>People you may know</h2>
+  {% if others %}
+    <div class="people">
+      {% for p in others %}
+        <div class="person card">
+          {% avatar p "lg" %}
+          <a class="nm" href="{% url 'profile' p.username %}">{{ p.name }}</a>
+          <p class="small muted">{{ p.bio|default:"On SafeBook" }}</p>
+          <form method="post" action="{% url 'friend_action' p.username 'add' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn-soft block" type="submit">{% icon "plus" %} Add friend</button></form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="muted">{% if q %}Nobody else matches "{{ q }}".{% else %}You know everyone here already.{% endif %}</p>
+  {% endif %}
+</section>
+
+{% if sent %}
+  <section class="block">
+    <h2>Requests you sent</h2>
+    <div class="list card">
+      {% for r in sent %}
+        <div class="row">
+          {% avatar r.to_user %}
+          <div class="row-main">
+            <a class="nm" href="{% url 'profile' r.to_user.username %}">{{ r.to_user.name }}</a>
+            <span class="small muted">Sent {{ r.created_at|ago }}</span>
+          </div>
+          <form method="post" action="{% url 'friend_action' r.to_user.username 'cancel' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn-soft small-btn" type="submit">Cancel</button></form>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+{% endblock %}

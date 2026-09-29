@@ -36,6 +36,24 @@ class Account(AbstractUser):
     privkey_ct = models.BinaryField(null=True, blank=True)
     privkey_nonce = models.BinaryField(null=True, blank=True)
 
+    # the profile is public on purpose: it is how friends find each other
+    display_name = models.CharField(max_length=60, blank=True)
+    bio = models.CharField(max_length=160, blank=True)
+
+    @property
+    def name(self) -> str:
+        return self.display_name or self.username
+
+    @property
+    def initials(self) -> str:
+        parts = self.name.split()
+        return "".join(p[0] for p in parts[:2]).upper() or "?"
+
+    @property
+    def hue(self) -> int:
+        """A colour for the avatar and cover that stays the same for a person."""
+        return int(hashlib.md5(self.username.encode()).hexdigest()[:4], 16) % 360
+
     @property
     def key_fingerprint(self) -> str:
         """SHA-256 of the public key, grouped for reading aloud.
@@ -51,27 +69,37 @@ class Account(AbstractUser):
 
 
 class Post(models.Model):
-    """A note. The body is encrypted under a key of its own.
+    """A post. The text is encrypted under a key of its own.
 
-    That key is wrapped for the author, and wrapped a second time for the
-    server when the post is public. Flipping visibility adds or drops one
-    wrapped key and never touches the ciphertext.
+    That key is always wrapped for the author. What else happens to it
+    depends on who the post is for:
+
+        only me   nothing else. Only the author's password opens it.
+        friends   wrapped again for each friend, with that friend's RSA
+                  public key, one PostShare row each. The server holds the
+                  rows but has no private key to open any of them.
+        public    wrapped under the server KEK, because a public post has
+                  to render for people who are not signed in as anybody.
+
+    Changing the audience adds or drops wrapped keys and never touches the
+    ciphertext.
     """
 
+    ONLY_ME, FRIENDS, PUBLIC = "me", "friends", "public"
+    AUDIENCES = [(ONLY_ME, "Only me"), (FRIENDS, "Friends"), (PUBLIC, "Public")]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    audience = models.CharField(max_length=10, choices=AUDIENCES, default=FRIENDS)
 
     key_owner = models.BinaryField()                      # post key, for the author
-    key_public = models.BinaryField(null=True, blank=True)  # post key, for the feed
+    key_public = models.BinaryField(null=True, blank=True)  # post key, for the server
     # which server KEK sealed key_public, so a rotation can find its own work
     key_public_kek_id = models.IntegerField(null=True, blank=True)
 
-    title_ct = models.BinaryField()
-    title_nonce = models.BinaryField()
     body_ct = models.BinaryField()
     body_nonce = models.BinaryField()
     mac = models.BinaryField(null=True, blank=True)
 
-    is_public = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -80,35 +108,83 @@ class Post(models.Model):
     def __str__(self):
         return f"Post {self.id} by {self.user}"
 
+    @property
+    def is_public(self):
+        return self.audience == self.PUBLIC
+
+
+class PostShare(models.Model):
+    """One friend's copy of one post key, locked with that friend's public key."""
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="shares")
+    reader = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="shared_with_me")
+    wrapped_key = models.BinaryField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["post", "reader"], name="one_share_per_reader")]
+
+
+class Comment(models.Model):
+    """Encrypted with the key of the post it sits under, so exactly the people
+    who can read the post can read what was said about it."""
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(Account, on_delete=models.CASCADE)
+    body_ct = models.BinaryField()
+    body_nonce = models.BinaryField()
+    mac = models.BinaryField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+
+class Like(models.Model):
+    """Not encrypted. Who liked what is metadata, and the page says so."""
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["post", "user"], name="one_like_each")]
+
+
+class FriendRequest(models.Model):
+    """A request, and once accepted, the friendship itself."""
+
+    from_user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="requests_sent")
+    to_user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="requests_received")
+    created_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["from_user", "to_user"], name="one_request_each_way")]
+
 
 class Message(models.Model):
-    """One message, sealed for one recipient.
+    """One chat message.
 
     A fresh session key encrypts the text; the recipient's RSA public key
-    wraps the session key. The sender keeps a second copy of that session
-    key wrapped under their own public key, so the outbox is readable
-    without the server holding anything extra.
+    wraps the session key, and the sender's public key wraps a second copy
+    so the sender can scroll back through the chat. The server holds both
+    and can open neither.
     """
 
     recipient = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="inbox")
-    sender = models.ForeignKey(Account, null=True, blank=True,
-                               on_delete=models.SET_NULL, related_name="sent_messages")
-    is_anonymous = models.BooleanField(default=False)
+    sender = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sent_messages")
 
-    title_ct = models.BinaryField()
-    title_nonce = models.BinaryField()
     body_ct = models.BinaryField()
     body_nonce = models.BinaryField()
     mac = models.BinaryField(null=True, blank=True)
 
     key_for_recipient = models.BinaryField()
-    key_for_sender = models.BinaryField(null=True, blank=True)
+    key_for_sender = models.BinaryField()
 
     read_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["created_at"]
 
 
 class LoginAttempt(models.Model):

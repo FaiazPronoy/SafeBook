@@ -6,8 +6,9 @@ Browser checks for SafeBook, in a real browser through Playwright.
                console error
   2. contrast  every piece of text against WCAG AA, light and dark
   3. phone     nothing scrolls sideways at 390 px
-  4. flows     a demo folder signs you in, the password eye works, a note
-               can be written and found, and signing out locks the file
+  4. flows     a demo card signs you in, the password eye works, a post
+               can be written, liked, commented on and deleted, a chat
+               message arrives, and signing out locks the account
 
 Start the site first on a database filled by seed_demo:
 
@@ -27,8 +28,8 @@ BASE = os.environ.get("SB_BASE", "http://127.0.0.1:8010")
 CHANNEL = os.environ.get("SB_BROWSER", "msedge")
 SHOTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shots")
 PUBLIC = ["/", "/login/", "/register/", "/recover/"]
-PRIVATE = ["/", "/feed/", "/messages/", "/messages/sent/", "/messages/new/", "/people/",
-           "/account/", "/posts/new/", "/lab/", "/lab/modes/", "/lab/nonce/",
+PRIVATE = ["/", "/friends/", "/u/nusrat/", "/u/faiaz/", "/u/tanvir/", "/messages/",
+           "/messages/tanvir/", "/account/", "/lab/", "/lab/modes/", "/lab/nonce/",
            "/lab/timing/", "/lab/kdf/", "/lab/tamper/"]
 PASS, FAIL = [], []
 
@@ -52,9 +53,16 @@ CONTRAST_JS = r"""
                                  g: top.g * top.a + under.g * (1 - top.a),
                                  b: top.b * top.a + under.b * (1 - top.a), a: 1});
   const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  // a gradient counts as its lightest stop, the worst case for light text on it
+  const stops = img => [...img.matchAll(/(?:rgba?|hsla?)\([^)]+\)/g)].map(m => parse(m[0])).filter(c => c && c.a >= .9);
   const background = el => {
     const stack = [];
     for (let e = el; e; e = e.parentElement) {
+      const img = getComputedStyle(e).backgroundImage;
+      if (img.includes('gradient') && e !== document.body) {
+        const solid = stops(img);
+        if (solid.length) { stack.push(solid.reduce((a, c) => lum(c) > lum(a) ? c : a)); break; }
+      }
       const c = parse(getComputedStyle(e).backgroundColor);
       if (c && c.a > 0) { stack.push(c); if (c.a >= 1) break; }
     }
@@ -85,8 +93,9 @@ CONTRAST_JS = r"""
 
 
 def open_demo(page):
+    """The first card is Nusrat, who is friends with everyone."""
     page.goto(BASE + "/login/")
-    page.locator(".casefile").first.click()
+    page.locator(".demo-card").first.click()
     page.wait_for_load_state("networkidle")
 
 
@@ -146,23 +155,48 @@ def main():
         eye.click()
         check("and hides it again", page.locator("#id_password").get_attribute("type") == "password")
         open_demo(page)
-        check("a demo folder opens that person's file", page.locator(".hero h1").inner_text().endswith("file"))
-        page.goto(BASE + "/posts/new/")
-        page.fill("#id_title", "Browser check note")
+        check("a demo card signs in as that person", page.locator(".side-me > span:last-child").inner_text().strip() == "Nusrat Jahan")
+
         page.fill("#id_body", "Written by the browser check.")
+        page.locator(".aud-pick label", has_text="Only me").click()
+        check("the composer says who will get a key", "Only you" in page.locator("[data-aud-hint]").inner_text())
+        page.locator(".composer button[type=submit]").click()
+        page.wait_for_load_state("networkidle")
+        post = page.locator("article.post", has_text="Written by the browser check.").first
+        check("a new post shows up at the top, locked for its author",
+              "Only you can read this" in post.locator(".lockline").inner_text())
+
+        post.locator("[data-like] button").click()
+        page.wait_for_function("b => b.getAttribute('aria-pressed') === 'true'",
+                               arg=post.locator("[data-like] button").element_handle(), timeout=5000)
+        check("a like counts without leaving the page",
+              post.locator("[data-like-count]").inner_text().strip() == "1"
+              and post.locator("[data-like] button").get_attribute("aria-pressed") == "true")
+
+        post.locator(".comment-form input[name=body]").fill("A comment from the check.")
+        post.locator(".comment-form button").click()
+        page.wait_for_load_state("networkidle")
+        check("a comment appears under the post", "A comment from the check." in page.content())
+
+        post = page.locator("article.post", has_text="Written by the browser check.").first
+        post.locator(".post-menu summary").click()
+        post.locator(".post-menu a.danger").click()
+        page.wait_for_load_state("networkidle")
         page.locator("main form button[type=submit]").first.click()
         page.wait_for_load_state("networkidle")
-        check("a new note opens after saving", "Browser check note" in page.content())
-        page.locator("main a[href$='/delete/']").first.click()
+        check("and the post can be deleted again", "Written by the browser check." not in page.content())
+
+        page.goto(BASE + "/messages/tanvir/")
+        page.fill("#id_body", "Hello from the browser check")
+        page.keyboard.press("Enter")
         page.wait_for_load_state("networkidle")
-        confirm = page.locator("main form button[type=submit]").last
-        confirm.click()
-        page.wait_for_load_state("networkidle")
-        check("and can be deleted again", "Browser check note" not in page.content())
+        check("Enter sends a chat message", page.locator(".msg.mine").last.inner_text().startswith("Hello from the browser check"))
+
+        page.locator(".me-menu summary").click()
         page.locator("#signOut button").click()
         page.wait_for_load_state("networkidle")
         page.goto(BASE + "/account/")
-        check("signing out locks the file", "/login/" in page.url)
+        check("signing out locks the account", "/login/" in page.url)
         ctx.close()
 
         browser.close()

@@ -3,60 +3,59 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
 
 <dialog class="explain" id="x-vault">
   <div class="x-head">
-    <h2>What happens to what you write</h2>
+    <h2>What happens to what you post</h2>
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Everything you write here is locked before it is saved. The lock is
-      built from your password, so the only person who can open it is you.</p>
-    <p>While you are signed in, SafeBook holds the key so it can show you your
-      own things. The moment you sign out, that key is gone. What is left on
-      the server is scrambled text that nobody there can turn back into words,
-      including whoever runs it.</p>
-    <p>That is also why nobody here can reset your password for you. A new
-      password would not open the old lock. Your recovery code is the second
-      key, and it is the only other way in.</p>
+    <p>Every post is locked before it is saved, with a key made just for that post.
+      Then copies of that key are handed to the people allowed to read it, and to
+      nobody else.</p>
+    <p>Your own copy is locked with your password. While you are signed in SafeBook
+      can use it to show you your things; the moment you sign out, it is gone. What is
+      left on the server is scrambled text that nobody there can turn back into words.</p>
+    <p>That is also why nobody here can reset your password for you. A new password
+      would not open the old lock. Your recovery code is the second key, and the only
+      other way in.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>Each account has a random 256 bit data key. It is sealed with
-          AES-256-GCM under a wrapping key derived from your password with
-          scrypt, and sealed again under a wrapping key derived from your
-          recovery code. Neither the password nor either wrapping key is
-          stored anywhere.</p>
-        <p>Every note gets its own content key, sealed under your data key.
-          Sharing a note seals a second copy of that content key under a key
-          the server holds, which is the only reason a shared note can be
-          shown to anyone else.</p>
+        <p>Each account has a random 256 bit data key, sealed with AES-256-GCM under a
+          key derived from your password with scrypt, and sealed again under a key from
+          your recovery code. Every post has its own AES-256 content key; your copy of it
+          is sealed under your data key.</p>
       </div>
     </details>
   </div>
 </dialog>
 
-<dialog class="explain" id="x-visibility">
+<dialog class="explain" id="x-audience">
   <div class="x-head">
-    <h2>Private and shared notes</h2>
+    <h2>Only me, Friends and Public</h2>
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>A private note can only be opened with your password. Not by other
-      people, and not by SafeBook itself.</p>
-    <p>Sharing a note is a real decision rather than a display setting. To
-      show it to other people, SafeBook has to be given a way to open it, and
-      from then on it can. You can take a note back off the feed whenever you
-      like and it goes back to being yours alone.</p>
-    <p>Switching between the two is instant. Nothing is rewritten and nothing
-      is copied, so a long note is no slower to share than a short one.</p>
+    <p><b>Only me.</b> The only copy of the post's key is yours, locked with your
+      password. Nobody else holds a key to it, SafeBook included.</p>
+    <p><b>Friends.</b> Each friend gets a copy of the key, locked with their own public
+      key, so only their password can open it. The server stores every copy and can open
+      none of them. Unfriend someone and their copies are deleted.</p>
+    <p><b>Public.</b> SafeBook keeps a copy under its own server key, because a public
+      post has to be shown to people who hold no key at all.</p>
+    <p>Changing the audience hands out or takes back copies of the key. The post itself
+      is never re-encrypted, however long it is.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>The note itself never moves. Sharing adds a 60 byte copy of its
-          content key sealed under the server key, and unsharing deletes that
-          copy. The ciphertext is byte for byte the same either way, which is
-          the point of putting keys inside other keys rather than
-          re-encrypting anything.</p>
+        <p>A friend's copy is the 32 byte content key wrapped with their RSA-2048 public
+          key using OAEP with SHA-256. A new friend's copies are made the next time the
+          author is signed in, because only the author can unwrap their own content keys.
+          Comments are encrypted with the post's content key, so the same people can read
+          them.</p>
+        <p>A key already handed out cannot be un-read: someone who opened your post while
+          you were friends may have kept what they saw. Unfriending protects what you post
+          afterwards.</p>
       </div>
     </details>
   </div>
@@ -64,28 +63,24 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
 
 <dialog class="explain" id="x-messages">
   <div class="x-head">
-    <h2>How a message is sealed</h2>
+    <h2>How a chat message is sealed</h2>
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Every account has a pair of matched locks. One half is public, so
-      anyone can lock something for you. The other half is yours, and it is
-      the only thing that opens what they locked.</p>
-    <p>When you send a message it is locked with the reader's public half. From
-      then on the only person who can open it is the person you sent it to.</p>
-    <p>A copy is locked for you as well, which is why your sent messages stay
-      readable. Send one anonymously and that copy is never made, so it leaves
-      your hands for good.</p>
+    <p>Every account has a pair of matched locks. One half is public, so anyone can lock
+      something for you. The other half is yours, and it is the only thing that opens what
+      they locked.</p>
+    <p>Each message gets a fresh key. That key is locked twice: once with the other
+      person's public half, once with yours, so both of you can scroll back through the
+      chat. Nobody else holds a copy.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>A fresh AES-256 session key encrypts each message. That session key
-          is wrapped with the recipient's RSA-2048 public key using OAEP, and
-          wrapped a second time with the sender's own public key unless the
-          message is anonymous. The recipient's private key is itself
-          encrypted under their data key, so opening a message needs their
-          password.</p>
+        <p>AES-256-GCM with a fresh session key per message, wrapped with RSA-OAEP for the
+          recipient and the sender. Your RSA private key is itself encrypted under your data
+          key, so opening a message needs your password. Each row also carries an HMAC over
+          both ids and the ciphertext.</p>
       </div>
     </details>
   </div>
@@ -97,22 +92,20 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Every account has a short code of its own, worked out from that
-      account's public lock. It changes if the lock ever changes.</p>
-    <p>Read yours out to somebody over the phone, or in person, and check it
-      against what SafeBook shows them. If the two match, you are writing to
-      the person you think you are.</p>
-    <p>If they ever stop matching, stop and ask why. This is the one check
-      software cannot do on your behalf, because the whole point of it is that
-      it does not go through SafeBook.</p>
+    <p>Every account has a short code of its own, worked out from that account's public
+      lock. It changes if the lock ever changes.</p>
+    <p>Read yours out to a friend in person or on a call, and check it against what
+      SafeBook shows them on your profile. If the two match, the keys they hand you really
+      reach you.</p>
+    <p>If they ever stop matching, stop and ask why. This is the one check software cannot
+      do for you, because the whole point is that it does not go through SafeBook.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>The safety number is a SHA-256 digest of the account's public key,
-          shown in groups of four so it can be read aloud without losing your
-          place. Comparing it out of band is what catches a server handing you
-          its own public key in place of somebody else's.</p>
+        <p>The safety number is a SHA-256 digest of the account's public key, shown in
+          groups of four. Comparing it out of band is what catches a server handing you its
+          own public key in place of your friend's.</p>
       </div>
     </details>
   </div>
@@ -124,22 +117,19 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Most sites use your password to check that you are you. Here it does
-      that and one more thing: it builds the key that unlocks your notes and
-      messages.</p>
-    <p>So changing it is quick and safe. Your notes are not touched at all.
-      Only the small lock that holds your key is rebuilt around the new
-      password.</p>
-    <p>It also means a weak password is a weak lock, not just a weak login. A
-      long one you can remember beats a short complicated one.</p>
+    <p>Most sites use your password to check that you are you. Here it does that and one
+      more thing: it unlocks the key to your posts and chats.</p>
+    <p>So changing it is quick and safe. Your posts are not touched at all. Only the small
+      lock that holds your key is rebuilt around the new password.</p>
+    <p>It also means a weak password is a weak lock, not just a weak login. A long one you
+      can remember beats a short complicated one.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>An Argon2id hash verifies the password. Separately, scrypt derives
-          a 32 byte wrapping key from the same password, and that key seals
-          your data key. Changing your password rewrites one sealed envelope
-          and leaves every stored note untouched.</p>
+        <p>An Argon2id hash verifies the password. Separately, scrypt derives a 32 byte
+          wrapping key from the same password, and that key seals your data key. Changing
+          your password rewrites one sealed envelope.</p>
       </div>
     </details>
   </div>
@@ -151,14 +141,12 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Because your password is what unlocks your things, forgetting it would
-      normally mean losing them. There is nobody here who can open your
-      account for you.</p>
-    <p>The recovery code is a second lock around the same key. Keep it
-      somewhere real, away from the device you sign in on. It is shown once,
-      and SafeBook keeps no copy it can read.</p>
-    <p>Anyone holding it can get into your account, so treat it the way you
-      would treat a spare front door key.</p>
+    <p>Because your password is what unlocks your things, forgetting it would normally
+      mean losing them. There is nobody here who can open your account for you.</p>
+    <p>The recovery code is a second lock around the same key. Keep it somewhere real,
+      away from the device you sign in on. It is shown once, and SafeBook keeps no copy it
+      can read.</p>
+    <p>Anyone holding it can get into your account, so treat it like a spare front door key.</p>
   </div>
 </dialog>
 
@@ -168,13 +156,13 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>A wrong password takes the same amount of time whether or not the
-      account exists, and says the same thing either way. Otherwise this page
-      would quietly tell strangers which names are real.</p>
-    <p>Five wrong attempts in a row pauses that name for fifteen minutes, so
-      nobody can sit there working through a list of guesses.</p>
-    <p>You can see every attempt on your account, right or wrong, on your
-      account page.</p>
+    <p>A wrong password takes the same time whether or not the account exists, and says
+      the same thing either way. Otherwise this page would tell strangers which names are
+      real.</p>
+    <p>Five wrong attempts in a row pause that name for fifteen minutes, so nobody can sit
+      there working through a list of guesses.</p>
+    <p>After fifteen minutes without activity SafeBook signs you out by itself, because a
+      signed-in tab is the one place your key is open.</p>
   </div>
 </dialog>
 
@@ -184,25 +172,18 @@ page. The link that opens one is _explain.html and can sit anywhere.{% endcommen
     <button class="x-close" type="button" aria-label="Close">&times;</button>
   </div>
   <div class="x-body">
-    <p>Every note and message carries a small seal, taken over the locked text
-      at the moment it was saved. Before anything is shown to you, that seal
-      is checked.</p>
-    <p>If even one character of the stored text has been altered since, the
-      seal will not match and SafeBook will not show you the note. It will not
-      show you a damaged version with a warning next to it either, because a
-      warning you can read past is not really a check.</p>
-    <p>In normal use you will never see this. It is here so that somebody with
-      access to the database cannot quietly edit what you wrote.</p>
+    <p>Every post, comment and message carries a small seal, taken over the locked text
+      when it was saved. Before anything is shown to you, that seal is checked.</p>
+    <p>If even one character of the stored text has changed since, the seal will not
+      match and SafeBook will not show it. Not a damaged version with a warning beside it:
+      nothing, because a warning you can read past is not really a check.</p>
 
     <details class="deep">
       <summary>The technical version</summary>
       <div class="deep-body">
-        <p>Each row carries an HMAC-SHA256 over a length prefixed encoding of
-          all its ciphertext columns and the id of the account that owns it,
-          keyed by a subkey derived from the row key. It is compared in
-          constant time. AES-GCM authenticates each field on its own; the row
-          seal is what stops fields being swapped between rows or a row being
-          moved to another account.</p>
+        <p>Each row carries an HMAC-SHA256 over a length prefixed encoding of its
+          ciphertext and the ids it belongs to, keyed by a subkey derived from the row key
+          with HKDF, and compared in constant time.</p>
       </div>
     </details>
   </div>

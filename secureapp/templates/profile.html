@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load sb %}
+{% block title %}{{ person.name }} · SafeBook{% endblock %}
+{% block content %}
+<section class="profile-top" style="--h: {{ person.hue }}">
+  <div class="cover" aria-hidden="true"></div>
+  <div class="profile-id">
+    {% avatar person "xl" link=False %}
+    <div class="pid-text">
+      <h1>{{ person.name }}</h1>
+      <p class="muted">@{{ person.username }} · {{ friend_total }} friend{{ friend_total|pluralize }}</p>
+      {% if person.bio %}<p class="bio">{{ person.bio }}</p>{% endif %}
+    </div>
+    <div class="pid-actions">
+      {% if relation == "self" %}
+        <a class="btn-soft" href="{% url 'account' %}">{% icon "settings" %} Edit profile</a>
+      {% else %}
+        {% if relation == "none" %}
+          <form method="post" action="{% url 'friend_action' person.username 'add' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn" type="submit">{% icon "plus" %} Add friend</button></form>
+        {% elif relation == "sent" %}
+          <form method="post" action="{% url 'friend_action' person.username 'cancel' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn-soft" type="submit">{% icon "x" %} Cancel request</button></form>
+        {% elif relation == "received" %}
+          <form method="post" action="{% url 'friend_action' person.username 'accept' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn" type="submit">{% icon "check" %} Confirm request</button></form>
+          <form method="post" action="{% url 'friend_action' person.username 'decline' %}">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button class="btn-soft" type="submit">Delete request</button></form>
+        {% else %}
+          <details class="menu">
+            <summary class="btn-soft">{% icon "check" %} Friends</summary>
+            <div class="menu-panel">
+              <form method="post" action="{% url 'friend_action' person.username 'remove' %}">{% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="danger" type="submit">{% icon "x" %} Unfriend</button></form>
+            </div>
+          </details>
+        {% endif %}
+        <a class="btn{% if relation != 'friends' %}-soft{% endif %}" href="{% url 'message_thread' person.username %}">{% icon "chat" %} Message</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="profile-grid">
+  <aside class="profile-side">
+    <section class="card">
+      <div class="card-head"><h2>Safety number</h2>
+        {% include "_explain.html" with topic="safety-number" label="Check it" %}</div>
+      <div class="card-body">
+        <div class="fingerprint">{{ person.key_fingerprint }}</div>
+        {% if relation != "self" %}
+          <p class="small muted" style="margin-top: var(--s3)">Ask {{ person|first_name }} to read
+            theirs out to you, in person or on a call. If they match, your chats and the keys you
+            hand {{ person|first_name }} really go to {{ person|first_name }}.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Friends</h2><span class="muted small">{{ friend_total }}</span></div>
+      <div class="card-body">
+        {% if friends %}
+          <div class="friend-grid">
+            {% for f in friends %}
+              <a href="{% url 'profile' f.username %}">{% avatar f "lg" link=False %}<span>{{ f.name }}</span></a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="small muted">No friends yet.</p>
+        {% endif %}
+      </div>
+    </section>
+  </aside>
+
+  <div class="stream">
+    {% if form %}{% include "_composer.html" %}{% endif %}
+
+    {% if waiting %}
+      <p class="note">{% icon "key" %}
+        <span>{{ waiting }} older friends-only post{{ waiting|pluralize }} from {{ person|first_name }}
+          will open here once {{ person|first_name }} next signs in. Only the author can hand out a
+          copy of a post's key.</span></p>
+    {% endif %}
+
+    {% for i in items %}
+      {% include "_post.html" %}
+    {% empty %}
+      <div class="card empty">
+        {% icon "lock" %}
+        <h2>{% if relation == "self" %}You have not posted yet{% else %}No posts you can read{% endif %}</h2>
+        {% if relation != "self" and relation != "friends" %}
+          <p class="muted">{{ person|first_name }}'s friends-only posts are encrypted for their
+            friends. Become friends and they will share the keys with you.</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    {% if hidden and relation != "self" %}
+      <p class="small muted center">{{ hidden }} more post{{ hidden|pluralize }} by {{ person|first_name }}
+        {{ hidden|pluralize:"is,are" }} encrypted for other people. You do not hold a key.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

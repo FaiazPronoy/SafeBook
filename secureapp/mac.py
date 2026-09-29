@@ -16,7 +16,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 CTX_POST = b"safebook/post-row-mac/v1"
-CTX_MESSAGE = b"safebook/message-row-mac/v1"
+CTX_MESSAGE = b"safebook/message-row-mac/v2"
+CTX_COMMENT = b"safebook/comment-row-mac/v1"
 
 
 def derive_mac_key(row_key: bytes, context: bytes) -> bytes:

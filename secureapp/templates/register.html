@@ -1,13 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Start a file · SafeBook{% endblock %}
+{% block title %}Create an account · SafeBook{% endblock %}
 {% block content %}
-<div class="auth auth-wide">
-  <div class="card">
+<div class="auth-one">
+  <section class="card auth-card">
     <div class="card-body">
-      <div class="eyebrow">New file</div>
-      <h1>Start your own file</h1>
-      <p class="muted small">Notes and messages that stay yours. Pick a password you can
-        remember, because it is the only thing that opens them.</p>
+      <h1>Create your account</h1>
+      <p class="muted small">Your password builds the key that locks your posts and chats. Pick
+        one you will remember: nobody here can reset it.</p>
 
       <form method="post" novalidate>
         {% csrf_token %}
@@ -16,21 +15,18 @@
           <div class="strength-bar" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
           <p class="strength-text" aria-live="polite"></p>
         </div>
-        <button class="btn block" type="submit">Start my file</button>
+        <p class="small muted">Your email and phone are encrypted too. Your name and bio are
+          public, so friends can find you.</p>
+        <button class="btn block big" type="submit">Create account</button>
       </form>
 
-      <div class="note brand" style="margin-top: var(--s5)">
-        <span>The next page shows a recovery code. It is shown once, and it is the only
-          other way into your account.</span>
-      </div>
+      <p class="note" style="margin-top: var(--s5)">
+        <span>The next page shows a recovery code, once. It is the only other way back into
+          your account.</span></p>
 
-      <p class="small muted" style="margin-top: var(--s4)">
-        Already have an account? <a href="{% url 'login' %}">Sign in</a>.
-      </p>
-      <div style="margin-top: var(--s3)">
-        {% include "_explain.html" with topic="vault" label="What happens to what I write?" %}
-      </div>
+      <p class="small muted auth-links">Already on SafeBook? <a href="{% url 'login' %}">Sign in</a></p>
+      {% include "_explain.html" with topic="vault" label="What happens to what I post?" %}
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

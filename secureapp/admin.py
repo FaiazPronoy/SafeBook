@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 
-from .models import Account, LoginAttempt, Message, Post
+from .models import Account, Comment, FriendRequest, LoginAttempt, Message, Post, PostShare
 
 
 def _hex(value, limit=None):
@@ -70,50 +70,72 @@ class AccountAdmin(UserAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "is_public", "created_at", "title_preview")
-    list_filter = ("is_public", "created_at")
+    list_display = ("id", "user", "audience", "created_at", "body_preview")
+    list_filter = ("audience", "created_at")
     search_fields = ("user__username",)
     date_hierarchy = "created_at"
-    readonly_fields = ("key_owner_hex", "key_public_hex", "title_hex", "body_hex", "mac_hex")
+    readonly_fields = ("key_owner_hex", "key_public_hex", "body_hex", "mac_hex")
 
     fieldsets = (
-        (None, {"fields": ("user", "is_public", "created_at")}),
-        ("Content key, wrapped twice", {"fields": ("key_owner_hex", "key_public_hex")}),
-        ("Ciphertext", {"fields": ("title_hex", "body_hex", "mac_hex")}),
+        (None, {"fields": ("user", "audience", "created_at")}),
+        ("Content key, wrapped", {"fields": ("key_owner_hex", "key_public_hex")}),
+        ("Ciphertext", {"fields": ("body_hex", "mac_hex")}),
     )
 
-    @admin.display(description="Title (ciphertext)")
-    def title_preview(self, obj):
-        return _hex(obj.title_ct, limit=10)
+    @admin.display(description="Body (ciphertext)")
+    def body_preview(self, obj):
+        return _hex(obj.body_ct, limit=10)
 
     key_owner_hex = CipherColumn.make("key_owner", "Wrapped for the author")
-    key_public_hex = CipherColumn.make("key_public", "Wrapped for the feed")
-    title_hex = CipherColumn.make("title_ct", "Title")
+    key_public_hex = CipherColumn.make("key_public", "Wrapped for the server (public posts only)")
     body_hex = CipherColumn.make("body_ct", "Body", limit=64)
     mac_hex = CipherColumn.make("mac", "Row MAC")
 
 
+@admin.register(PostShare)
+class PostShareAdmin(admin.ModelAdmin):
+    list_display = ("post", "reader", "key_preview")
+    search_fields = ("reader__username",)
+
+    @admin.display(description="Post key, RSA-OAEP for the reader")
+    def key_preview(self, obj):
+        return _hex(obj.wrapped_key, limit=12)
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("id", "post", "author", "created_at", "body_preview")
+
+    @admin.display(description="Body (ciphertext)")
+    def body_preview(self, obj):
+        return _hex(obj.body_ct, limit=10)
+
+
+@admin.register(FriendRequest)
+class FriendRequestAdmin(admin.ModelAdmin):
+    list_display = ("from_user", "to_user", "created_at", "accepted_at")
+    list_filter = ("accepted_at",)
+
+
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ("id", "recipient", "sender", "is_anonymous", "created_at", "title_preview")
-    list_filter = ("is_anonymous", "created_at")
+    list_display = ("id", "sender", "recipient", "created_at", "body_preview")
     search_fields = ("recipient__username", "sender__username")
     date_hierarchy = "created_at"
-    readonly_fields = ("key_recipient_hex", "key_sender_hex", "title_hex", "body_hex", "mac_hex")
+    readonly_fields = ("key_recipient_hex", "key_sender_hex", "body_hex", "mac_hex")
 
     fieldsets = (
-        (None, {"fields": ("recipient", "sender", "is_anonymous", "read_at", "created_at")}),
+        (None, {"fields": ("sender", "recipient", "read_at", "created_at")}),
         ("Session key, wrapped with RSA-OAEP", {"fields": ("key_recipient_hex", "key_sender_hex")}),
-        ("Ciphertext", {"fields": ("title_hex", "body_hex", "mac_hex")}),
+        ("Ciphertext", {"fields": ("body_hex", "mac_hex")}),
     )
 
-    @admin.display(description="Title (ciphertext)")
-    def title_preview(self, obj):
-        return _hex(obj.title_ct, limit=10)
+    @admin.display(description="Body (ciphertext)")
+    def body_preview(self, obj):
+        return _hex(obj.body_ct, limit=10)
 
     key_recipient_hex = CipherColumn.make("key_for_recipient", "For the recipient", limit=48)
     key_sender_hex = CipherColumn.make("key_for_sender", "For the sender", limit=48)
-    title_hex = CipherColumn.make("title_ct", "Title")
     body_hex = CipherColumn.make("body_ct", "Body", limit=64)
     mac_hex = CipherColumn.make("mac", "Row MAC")
 

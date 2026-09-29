@@ -1,0 +1,1 @@
+{% load sb %}{% if p.audience == "public" %}<span class="aud aud-public">{% icon "globe" %}<span>Public</span></span>{% elif p.audience == "friends" %}<span class="aud aud-friends">{% icon "users" %}<span>Friends</span></span>{% else %}<span class="aud aud-me">{% icon "lock" %}<span>Only me</span></span>{% endif %}

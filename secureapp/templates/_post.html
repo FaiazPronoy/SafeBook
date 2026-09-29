@@ -1,0 +1,105 @@
+{% load sb %}
+{% with p=i.post a=i.author %}
+<article class="card post" id="post-{{ p.id }}">
+  <header class="post-head">
+    {% avatar a %}
+    <div class="who">
+      <a class="nm" href="{% url 'profile' a.username %}">{{ a.name }}</a>
+      <div class="meta">
+        <a href="{% url 'post_detail' p.id %}"><time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|ago }}</time></a>
+        <span aria-hidden="true">·</span> {% include "_aud.html" %}
+      </div>
+    </div>
+    {% if i.mine and i.state == "ok" %}
+      <details class="menu post-menu">
+        <summary aria-label="Post options">{% icon "more" %}</summary>
+        <div class="menu-panel">
+          <p class="menu-label">Who can read this</p>
+          {% for value, label in p.AUDIENCES %}
+            <form method="post" action="{% url 'post_audience' p.id %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <input type="hidden" name="audience" value="{{ value }}">
+              <button type="submit"{% if p.audience == value %} class="current" aria-current="true"{% endif %}>
+                {% if value == "public" %}{% icon "globe" %}{% elif value == "friends" %}{% icon "users" %}{% else %}{% icon "lock" %}{% endif %}
+                {{ label }}{% if p.audience == value %}{% icon "check" %}{% endif %}</button>
+            </form>
+          {% endfor %}
+          <hr>
+          <a href="{% url 'post_detail' p.id %}">{% icon "key" %} Who holds a key</a>
+          <a class="danger" href="{% url 'post_delete' p.id %}">{% icon "trash" %} Delete post</a>
+        </div>
+      </details>
+    {% endif %}
+  </header>
+
+  {% if i.state == "locked" %}
+    <div class="sealed">
+      {% icon "lock" %}
+      <p><b>Waiting for a key.</b> {{ a|first_name }} wrote this for friends before you
+        two were friends. Only {{ a|first_name }} can hand you a copy of its key, so it
+        opens the next time they sign in.</p>
+    </div>
+  {% else %}
+    <div class="post-body">{{ i.body|linebreaksbr }}</div>
+
+    <p class="lockline lock-{{ p.audience }}">
+      {% if p.audience == "me" %}{% icon "lock" %} Only you can read this. It is locked with your password.
+      {% elif p.audience == "friends" and i.mine %}{% icon "key" %} Encrypted for you and {{ i.friends_count }} friend{{ i.friends_count|pluralize }}, each with a key of their own.
+      {% elif p.audience == "friends" %}{% icon "key" %} Encrypted for {{ a|first_name }}'s friends. Your own copy of the key opened it.
+      {% else %}{% icon "globe" %} Public. SafeBook holds a key to this one so anyone can read it.{% endif %}
+    </p>
+
+    <div class="post-stats">
+      <span class="likes" data-like-count>{% if i.likes %}{% icon "heart" %} {{ i.likes }}{% endif %}</span>
+      {% if i.comment_count %}<a href="{% url 'post_detail' p.id %}">{{ i.comment_count }} comment{{ i.comment_count|pluralize }}</a>{% endif %}
+    </div>
+
+    <div class="post-actions">
+      <form method="post" action="{% url 'post_like' p.id %}" data-like>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="act{% if i.liked %} liked{% endif %}" aria-pressed="{% if i.liked %}true{% else %}false{% endif %}">
+          {% icon "heart" %}<span>Like</span></button>
+      </form>
+      <label class="act" for="c-{{ p.id }}">{% icon "comment" %}<span>Comment</span></label>
+    </div>
+
+    <div class="comments">
+      {% if not full and i.comment_count > i.comments|length %}
+        <a class="more-comments" href="{% url 'post_detail' p.id %}">View all {{ i.comment_count }} comments</a>
+      {% endif %}
+      {% for c in i.comments %}
+        <div class="comment">
+          {% avatar c.c.author "sm" %}
+          <div class="c-main">
+            <div class="bubble">
+              <a class="nm" href="{% url 'profile' c.c.author.username %}">{{ c.c.author.name }}</a>
+              {% if c.body is None %}<span class="muted">This comment failed its check, so it is hidden.</span>{% else %}<span class="c-text">{{ c.body }}</span>{% endif %}
+            </div>
+            <div class="c-meta">
+              <time datetime="{{ c.c.created_at|date:'c' }}">{{ c.c.created_at|ago }}</time>
+              {% if c.can_delete %}
+                <form method="post" action="{% url 'comment_delete' c.c.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="linkish">Delete</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      <form class="comment-form" method="post" action="{% url 'comment_new' p.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% avatar user "sm" link=False %}
+        <label class="sr-only" for="c-{{ p.id }}">Write a comment</label>
+        <input id="c-{{ p.id }}" name="body" maxlength="1000" required autocomplete="off"
+               placeholder="Write a comment">
+        <button type="submit" class="round-btn send" aria-label="Send comment">{% icon "send" %}</button>
+      </form>
+    </div>
+  {% endif %}
+</article>
+{% endwith %}

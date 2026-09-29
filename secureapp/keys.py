@@ -16,17 +16,24 @@ Two keys are in play, and they answer to two different people.
                       it answers is someone walking off with the database
                       file, not the person running the server.
 
+    a friend's RSA key  the public half is on their profile, so anyone can
+                      lock a key for them; the private half is sealed under
+                      their DEK. A friends-only post hands each friend a copy
+                      of its content key this way, and the server, holding
+                      every copy, can open none of them.
+
 Every post gets its own random content key. That key is wrapped for the
-author under their DEK, and wrapped a second time under the server KEK when
-the post is public. Publishing or unpublishing adds or drops one 60 byte
-wrapped key and never re-encrypts the post - which is the whole reason for
-wrapping keys inside other keys.
+author under their DEK, for each friend under their RSA key when the post is
+for friends, and under the server KEK when it is public. Changing the
+audience adds or drops wrapped keys and never re-encrypts the post - which
+is the whole reason for wrapping keys inside other keys.
 """
 
 from keymgmt.services import get_active_kek
 
 from .crypto import new_key, unwrap_key, wrap_key
 from .pwdwrap import derive_wrapping_key, new_salt
+from .rsa_utils import load_public_key_from_pem, rsa_unwrap_session_key, rsa_wrap_session_key
 
 AAD_PRIVATE_DEK = b"envelope/private-dek"
 AAD_RECOVERY_DEK = b"envelope/recovery-dek"
@@ -78,3 +85,12 @@ def wrap_post_key_for_public(post_key: bytes) -> bytes:
 
 def unwrap_post_key_for_public(wrapped: bytes) -> bytes:
     return unwrap_key(wrapped, server_kek(), AAD_POST_KEY_PUBLIC)
+
+
+def wrap_post_key_for_friend(post_key: bytes, friend) -> bytes:
+    """RSA-OAEP under the friend's public key. Only their password opens it."""
+    return rsa_wrap_session_key(load_public_key_from_pem(friend.public_key_pem.encode()), post_key)
+
+
+def unwrap_post_key_as_friend(wrapped: bytes, private_key) -> bytes:
+    return rsa_unwrap_session_key(private_key, bytes(wrapped))

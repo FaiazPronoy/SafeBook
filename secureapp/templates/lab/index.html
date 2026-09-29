@@ -2,7 +2,7 @@
 {% block title %}How it works · SafeBook{% endblock %}
 {% block content %}
 <div class="lab-hero">
-  <div class="eyebrow" style="color: rgba(255,255,255,.78)">How it works</div>
+  <div class="eyebrow" style="color: #fff">How it works</div>
   <h1>Claims are easy. Here is the working.</h1>
   <p>Any app can put a padlock in the corner and tell you it is safe. These pages let
     you watch the difference for yourself, on data made up on the spot. Nothing here
@@ -13,24 +13,24 @@
   <div class="card is-verified">
     <div class="card-head"><h2>The short answer</h2></div>
     <div class="card-body">
-      <p class="small">Your password builds the key to your notes. While you are signed
-        in, SafeBook can open them for you. When you are not, it holds nothing it can
-        read, and neither does anyone with access to the server.</p>
-      <p class="small">Sharing a note is the one thing that changes that, and only for
-        that note.</p>
+      <p class="small">Every post has a key of its own. You hold a copy, locked with your
+        password. Each friend holds a copy, locked with their own key. Nobody else does,
+        SafeBook included, unless you make the post public.</p>
+      <p class="small">Chats work the same way, with one copy for each of the two people
+        talking.</p>
       <div class="actions">
-        {% include "_explain.html" with topic="vault" label="A little more detail" %}
+        {% include "_explain.html" with topic="audience" label="Who can read what" %}
       </div>
     </div>
   </div>
   <div class="card">
     <div class="card-head"><h2>What we cannot do</h2></div>
     <div class="card-body">
-      <p class="small">Nobody here can read your private notes, reset your password for
-        you, or recover your account without your recovery code. Those are the same
-        limitation seen from three sides, and they are the price of the first paragraph.</p>
-      <p class="small">While you are signed in, this server does see your notes in order
-        to show them to you. That is worth knowing.</p>
+      <p class="small">Nobody here can read your friends or only-me posts, reset your
+        password for you, or get you back in without your recovery code. Those are the same
+        limitation seen from three sides.</p>
+      <p class="small">What the server does know: who your friends are, who liked what, and
+        when you posted. Hiding that would need a different kind of system.</p>
     </div>
   </div>
 </div>

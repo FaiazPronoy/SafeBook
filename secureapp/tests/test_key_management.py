@@ -35,7 +35,7 @@ class PasswordChangeTests(TestCase):
     def setUp(self):
         self.alice, self.dek, _ = full_account("alice")
         self.client = sign_in("alice")
-        self.client.post("/posts/new/", {"title": "Keep me", "body": "still readable after"})
+        self.client.post("/posts/new/", {"body": "still readable after", "audience": "me"})
         self.post = Post.objects.get(user=self.alice)
 
     def _change(self, current=PASSWORD):
@@ -81,7 +81,7 @@ class RecoveryTests(TestCase):
     def setUp(self):
         self.alice, self.dek, self.code = full_account("alice")
         client = sign_in("alice")
-        client.post("/posts/new/", {"title": "Before", "body": "survives the reset"})
+        client.post("/posts/new/", {"body": "survives the reset", "audience": "me"})
         self.post = Post.objects.get(user=self.alice)
         self.visitor = Client()
 
@@ -121,7 +121,7 @@ class KekRotationTests(TestCase):
         self.alice, self.dek, _ = full_account("alice")
         client = sign_in("alice")
         client.post("/posts/new/",
-                    {"title": "Published", "body": "readable by the feed", "is_public": "on"})
+                    {"body": "readable by the feed", "audience": "public"})
         self.post = Post.objects.get(user=self.alice)
         self.new_kek = base64.b64encode(os.urandom(32)).decode()
 
@@ -165,8 +165,8 @@ class KekRotationTests(TestCase):
 
     def test_private_posts_have_nothing_for_the_server_to_rotate(self):
         client = sign_in("alice")
-        client.post("/posts/new/", {"title": "Kept back", "body": "no server key"})
-        private = Post.objects.get(is_public=False)
+        client.post("/posts/new/", {"body": "no server key", "audience": "me"})
+        private = Post.objects.get(audience="me")
         self.assertIsNone(private.key_public)
         self._rotate()
         private.refresh_from_db()

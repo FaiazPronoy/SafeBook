@@ -61,7 +61,7 @@ echo [4/5] Preparing the database ...
 
 echo [5/5] Starting SafeBook at http://127.0.0.1:8010
 echo.
-echo   Demo files are on the sign in page: pick a folder, nothing to type.
+echo   Demo people are on the sign in page: pick a card, nothing to type.
 echo   Close this window to stop SafeBook.
 echo.
 start "" http://127.0.0.1:8010

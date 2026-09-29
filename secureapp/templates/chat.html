@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load sb %}
+{% block title %}{% if other %}{{ other.name }} · {% endif %}Chats · SafeBook{% endblock %}
+{% block main_class %}chat-page{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="chat{% if other %} has-thread{% endif %}">
+  <aside class="chat-list" aria-label="Conversations">
+    <div class="chat-list-head">
+      <h1>Chats</h1>
+      {% include "_explain.html" with topic="messages" label="Who can read these?" %}
+    </div>
+    {% for c in conversations %}
+      <a class="convo{% if other and c.person.id == other.id %} on{% endif %}{% if c.unread %} unread{% endif %}"
+         href="{% url 'message_thread' c.person.username %}">
+        {% avatar c.person link=False %}
+        <span class="convo-text">
+          <b>{{ c.person.name }}</b>
+          <span class="preview">{% if c.mine %}You: {% endif %}{{ c.preview|truncatechars:48 }}</span>
+        </span>
+        {% if c.unread %}<b class="dot" aria-label="{{ c.unread }} unread">{{ c.unread }}</b>
+        {% elif c.at %}<time class="small muted" datetime="{{ c.at|date:'c' }}">{{ c.at|short_ago }}</time>{% endif %}
+      </a>
+    {% empty %}
+      <p class="muted small pad">No chats yet. Add a friend and say hello.</p>
+    {% endfor %}
+  </aside>
+
+  <section class="thread" aria-label="{% if other %}Chat with {{ other.name }}{% else %}No chat open{% endif %}">
+    {% if other %}
+      <header class="thread-head">
+        <a class="round-btn back-btn" href="{% url 'messages_inbox' %}" aria-label="All chats">{% icon "back" %}</a>
+        {% avatar other %}
+        <div>
+          <a class="nm" href="{% url 'profile' other.username %}">{{ other.name }}</a>
+          <div class="small e2e">{% icon "lock" %} Locked for you two</div>
+        </div>
+      </header>
+
+      <div class="bubbles" id="bubbles">
+        <p class="e2e-note">{% icon "lock" %} Messages here are locked for {{ other|first_name }} and
+          you. SafeBook stores them without a key of its own.
+          <a href="{% url 'profile' other.username %}">Compare safety numbers</a></p>
+        {% if not is_friend %}
+          <p class="e2e-note">You and {{ other|first_name }} are not friends. You can still chat.</p>
+        {% endif %}
+        {% for t in thread %}
+          {% ifchanged t.m.created_at.date %}<p class="day">{{ t.m.created_at|date:"j F Y" }}</p>{% endifchanged %}
+          <div class="msg{% if t.mine %} mine{% endif %}">
+            <p>{{ t.body|linebreaksbr }}</p>
+            <time datetime="{{ t.m.created_at|date:'c' }}">{{ t.m.created_at|date:"H:i" }}{% if t.mine and t.m.read_at %} · Seen{% endif %}</time>
+          </div>
+        {% endfor %}
+      </div>
+
+      <form class="composer-line" method="post">
+        {% csrf_token %}
+        <label class="sr-only" for="id_body">Message</label>
+        <textarea id="id_body" name="body" rows="1" maxlength="2000" required
+                  placeholder="Message {{ other|first_name }}" autofocus></textarea>
+        <button class="round-btn send" type="submit" aria-label="Send">{% icon "send" %}</button>
+      </form>
+    {% else %}
+      <div class="thread-empty">
+        {% icon "chat" %}
+        <h2>Pick a chat</h2>
+        <p class="muted">Every message is locked for the two of you before it is saved.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% load sb %}
+<section class="card composer" aria-label="Write a post">
+  <form method="post" action="{% url 'post_new' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <div class="composer-top">
+      {% avatar user link=False %}
+      <label class="sr-only" for="id_body">Post</label>
+      <textarea id="id_body" name="body" rows="2" maxlength="5000" required
+                placeholder="What's on your mind, {{ user|first_name }}?"></textarea>
+    </div>
+    <div class="composer-foot">
+      <fieldset class="aud-pick">
+        <legend class="sr-only">Who can read it</legend>
+        <label>
+          <input type="radio" name="audience" value="friends" checked
+                 data-hint="Each of your friends gets their own key to this post. Nobody else gets one, SafeBook included.">
+          <span>{% icon "users" %} Friends</span></label>
+        <label>
+          <input type="radio" name="audience" value="public"
+                 data-hint="Anyone on SafeBook can read this. The server keeps a key to it so it can show it to everyone.">
+          <span>{% icon "globe" %} Public</span></label>
+        <label>
+          <input type="radio" name="audience" value="me"
+                 data-hint="Only you. It is locked with your password, and nobody else gets a key.">
+          <span>{% icon "lock" %} Only me</span></label>
+      </fieldset>
+      <button class="btn" type="submit">Post</button>
+    </div>
+    <p class="aud-hint" data-aud-hint aria-live="polite">Each of your friends gets their own key to
+      this post. Nobody else gets one, SafeBook included.</p>
+  </form>
+</section>

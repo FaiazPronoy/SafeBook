@@ -1,42 +1,75 @@
 {% extends "base.html" %}
-{% block title %}Feed · SafeBook{% endblock %}
+{% load sb %}
+{% block title %}Home · SafeBook{% endblock %}
+{% block main_class %}shell{% endblock %}
 {% block content %}
-<div class="page-head">
-  <div>
-    <div class="eyebrow">Feed</div>
-    <h1>Notes people chose to share</h1>
-    <p class="muted">Everything else on SafeBook stays shut. These are here because
-      their authors decided to put them here.</p>
-  </div>
-  {% include "_explain.html" with topic="visibility" label="What does sharing change?" %}
+{% include "_side.html" %}
+
+<div class="stream">
+  {% include "_composer.html" %}
+
+  {% if unreadable %}
+    <p class="note broken">{% icon "shield" %}
+      <span>{{ unreadable }} post{{ unreadable|pluralize }} failed {{ unreadable|pluralize:"its,their" }}
+        integrity check and {{ unreadable|pluralize:"is,are" }} not shown.
+        {% include "_explain.html" with topic="checks" label="Why?" %}</span></p>
+  {% endif %}
+
+  {% for i in items %}
+    {% include "_post.html" %}
+  {% empty %}
+    <div class="card empty">
+      {% icon "users" %}
+      <h2>Nothing here yet</h2>
+      <p class="muted">Write your first post above, or <a href="{% url 'friends' %}">find some
+        friends</a> so their posts show up here.</p>
+    </div>
+  {% endfor %}
 </div>
 
-{% if items %}
-  <div class="grid grid-2">
-    {% for item in items %}
-      <article class="card is-public">
-        <div class="card-head">
-          <h2>{{ item.title }}</h2>
-          {% if item.mine %}<span class="badge plain">Yours</span>{% endif %}
+<aside class="rail" aria-label="Friends and chats">
+  {% if requests %}
+    <section class="rail-block">
+      <div class="rail-head"><h2>Friend requests</h2><a href="{% url 'friends' %}">See all</a></div>
+      {% for r in requests %}
+        <div class="req">
+          {% avatar r.from_user %}
+          <div>
+            <a class="nm" href="{% url 'profile' r.from_user.username %}">{{ r.from_user.name }}</a>
+            <div class="req-actions">
+              <form method="post" action="{% url 'friend_action' r.from_user.username 'accept' %}">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="btn small-btn" type="submit">Confirm</button></form>
+              <form method="post" action="{% url 'friend_action' r.from_user.username 'decline' %}">
+                {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="btn-soft small-btn" type="submit">Delete</button></form>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <p class="prose">{{ item.body|truncatechars:300 }}</p>
-        </div>
-        <div class="card-foot">
-          <span class="muted">{{ item.author }} &middot; {{ item.created_at|date:"j M Y" }}</span>
-          &nbsp;<a href="{% url 'post_detail' item.id %}">Read</a>
-          {% if not item.mine %}
-            &middot; <a href="{% url 'message_to' item.author %}">Message {{ item.author }}</a>
-          {% endif %}
-        </div>
-      </article>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <section class="rail-block">
+    <div class="rail-head"><h2>Contacts</h2></div>
+    {% for f in contacts %}
+      <a class="contact" href="{% url 'message_thread' f.username %}">
+        {% avatar f link=False %}<span>{{ f.name }}</span>{% icon "chat" %}</a>
+    {% empty %}
+      <p class="small muted">Friends you add show up here, ready to chat.</p>
     {% endfor %}
-  </div>
-{% else %}
-  <div class="card"><div class="empty">
-    <h3>Nothing shared yet</h3>
-    <p>Notes stay private until somebody chooses otherwise, and nobody has yet.</p>
-    <p><a class="btn" href="{% url 'post_new' %}">Write the first one</a></p>
-  </div></div>
-{% endif %}
+  </section>
+
+  <section class="rail-block server-sees">
+    <div class="rail-head"><h2>{% icon "server" %} What SafeBook can see</h2></div>
+    <ul class="sees">
+      <li class="no">{% icon "x" %} Your friends-only and only-me posts</li>
+      <li class="no">{% icon "x" %} Comments under them</li>
+      <li class="no">{% icon "x" %} Your chats</li>
+      <li class="yes">{% icon "check" %} Who your friends are, and likes</li>
+      <li class="yes">{% icon "check" %} When you post, and your name and bio</li>
+    </ul>
+    {% include "_explain.html" with topic="audience" label="Who can read what?" %}
+  </section>
+</aside>
 {% endblock %}

@@ -6,8 +6,8 @@ with the new one. The post's own ciphertext is never read and never
 rewritten, which is the reason for wrapping keys inside keys in the first
 place.
 
-Private posts hold no server-wrapped key at all, so there is nothing here
-for the server to rotate - and nothing for it to read either.
+Only-me and friends posts hold no server-wrapped key at all, so there is
+nothing here for the server to rotate - and nothing for it to read either.
 """
 
 import base64
@@ -47,7 +47,7 @@ class Command(BaseCommand):
         if new_kek == old_kek:
             raise CommandError("the new KEK is the same as the current one.")
 
-        rows = Post.objects.filter(is_public=True).exclude(key_public=None)
+        rows = Post.objects.filter(audience=Post.PUBLIC).exclude(key_public=None)
         done = 0
 
         with transaction.atomic():

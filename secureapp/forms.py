@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -13,10 +15,12 @@ def _pw(placeholder, autocomplete):
 
 
 class RegisterForm(forms.Form):
-    username = forms.CharField(max_length=150, label="Username",
-                               widget=forms.TextInput(attrs={**_TEXT, "placeholder": "pick a name",
-                                                             "autocomplete": "username",
-                                                             "autofocus": "autofocus"}))
+    name = forms.CharField(max_length=60, label="Your name",
+                           widget=forms.TextInput(attrs={"class": "input", "placeholder": "what friends call you",
+                                                         "autocomplete": "name", "autofocus": "autofocus"}))
+    username = forms.CharField(max_length=30, label="Username",
+                               widget=forms.TextInput(attrs={**_TEXT, "placeholder": "for your profile link",
+                                                             "autocomplete": "username"}))
     password1 = forms.CharField(label="Password", widget=_pw("at least 8 characters", "new-password"))
     password2 = forms.CharField(label="Confirm password", widget=_pw("again", "new-password"))
     email = forms.EmailField(label="Email",
@@ -28,6 +32,8 @@ class RegisterForm(forms.Form):
 
     def clean_username(self):
         name = self.cleaned_data["username"].strip()
+        if not re.fullmatch(r"[A-Za-z0-9_.]{3,30}", name):
+            raise forms.ValidationError("3 to 30 letters, digits, dots or underscores.")
         if Account.objects.filter(username__iexact=name).exists():
             raise forms.ValidationError("That username is taken.")
         return name
@@ -98,34 +104,30 @@ class RecoverForm(forms.Form):
         return data
 
 
+class ProfileForm(forms.Form):
+    name = forms.CharField(max_length=60, label="Name",
+                           widget=forms.TextInput(attrs={"class": "input", "autocomplete": "name"}))
+    bio = forms.CharField(max_length=160, required=False, label="Bio",
+                          widget=forms.TextInput(attrs={"class": "input",
+                                                        "placeholder": "a line about you, anyone can see it"}))
+
+
 class PostForm(forms.Form):
-    title = forms.CharField(max_length=200, label="Title",
-                            widget=forms.TextInput(attrs={"class": "input", "placeholder": "give it a name",
-                                                          "autofocus": "autofocus"}))
-    body = forms.CharField(label="Body",
-                           widget=forms.Textarea(attrs={"class": "input", "rows": 10,
-                                                        "placeholder": "nobody else can read this"}))
-    is_public = forms.BooleanField(required=False, label="Share this on the public feed")
+    body = forms.CharField(max_length=5000, label="Post",
+                           widget=forms.Textarea(attrs={"class": "input", "rows": 3,
+                                                        "placeholder": "What's on your mind?"}))
+    audience = forms.ChoiceField(choices=[("friends", "Friends"), ("public", "Public"), ("me", "Only me")],
+                                 initial="friends", label="Who can read it")
+
+
+class CommentForm(forms.Form):
+    body = forms.CharField(max_length=1000, label="Comment",
+                           widget=forms.TextInput(attrs={"class": "input", "placeholder": "Write a comment",
+                                                         "autocomplete": "off"}))
 
 
 class MessageForm(forms.Form):
-    to = forms.CharField(max_length=150, label="To",
-                         widget=forms.TextInput(attrs={**_TEXT, "placeholder": "username",
-                                                       "autofocus": "autofocus"}))
-    title = forms.CharField(max_length=200, label="Subject",
-                            widget=forms.TextInput(attrs={"class": "input", "placeholder": "subject"}))
-    body = forms.CharField(label="Message",
-                           widget=forms.Textarea(attrs={"class": "input", "rows": 8,
-                                                        "placeholder": "only they will be able to read it"}))
-    anonymous = forms.BooleanField(required=False, label="Send this without my name")
-
-    def clean_to(self):
-        name = self.cleaned_data["to"].strip()
-        recipient = Account.objects.filter(username__iexact=name).first()
-        if recipient is None:
-            raise forms.ValidationError("No account with that username.")
-        if not recipient.public_key_pem:
-            raise forms.ValidationError(
-                "That account is not set up to receive messages yet."
-            )
-        return recipient.username
+    body = forms.CharField(max_length=2000, label="Message",
+                           widget=forms.Textarea(attrs={"class": "input", "rows": 1,
+                                                        "placeholder": "Write a message",
+                                                        "autofocus": "autofocus"}))

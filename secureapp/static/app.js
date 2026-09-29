@@ -81,22 +81,69 @@
     box.insertAdjacentElement("afterend", button);
   });
 
-  /* ---------------------------------------------------------- find a note */
-  var find = document.getElementById("findNote");
-  if (find) {
-    var rows = Array.prototype.slice.call(document.querySelectorAll("[data-note-title]"));
-    var none = document.getElementById("findNone");
-    find.addEventListener("input", function () {
-      var q = find.value.trim().toLowerCase();
-      var shown = 0;
-      rows.forEach(function (row) {
-        var hit = !q || row.getAttribute("data-note-title").toLowerCase().indexOf(q) !== -1;
-        row.hidden = !hit;
-        if (hit) shown++;
-      });
-      if (none) none.hidden = shown !== 0;
+  /* ---------------------------------------------------------- only one menu open at a time */
+  document.addEventListener("click", function (event) {
+    document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+      if (!menu.contains(event.target)) menu.removeAttribute("open");
+    });
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll("details.menu[open]").forEach(function (menu) {
+      menu.removeAttribute("open");
+      menu.querySelector("summary").focus();
+    });
+  });
+
+  /* ---------------------------------------------------------- the composer says who gets a key */
+  var hint = document.querySelector("[data-aud-hint]");
+  if (hint) {
+    document.querySelectorAll('.aud-pick input[name="audience"]').forEach(function (radio) {
+      radio.addEventListener("change", function () { hint.textContent = radio.dataset.hint; });
     });
   }
+
+  /* ---------------------------------------------------------- like without leaving the page */
+  document.querySelectorAll("form[data-like]").forEach(function (form) {
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      var button = form.querySelector("button");
+      fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "fetch" },
+        credentials: "same-origin"
+      }).then(function (response) {
+        if (!response.ok) throw new Error(response.status);
+        return response.json();
+      }).then(function (data) {
+        button.classList.toggle("liked", data.liked);
+        button.setAttribute("aria-pressed", data.liked ? "true" : "false");
+        var count = form.closest(".post").querySelector("[data-like-count]");
+        var heart = button.querySelector("svg").outerHTML;
+        count.innerHTML = data.count ? heart + " " + data.count : "";
+      }).catch(function () { form.submit(); });
+    });
+  });
+
+  /* ---------------------------------------------------------- chat: newest at the bottom, Enter sends */
+  var bubbles = document.getElementById("bubbles");
+  if (bubbles) bubbles.scrollTop = bubbles.scrollHeight;
+  document.querySelectorAll(".composer-line textarea, .composer textarea").forEach(function (area) {
+    var grow = function () {
+      area.style.height = "auto";
+      area.style.height = Math.min(area.scrollHeight, 200) + "px";
+    };
+    area.addEventListener("input", grow);
+    if (area.closest(".composer-line")) {
+      area.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.shiftKey && area.value.trim()) {
+          event.preventDefault();
+          area.form.submit();
+        }
+      });
+    }
+  });
 
   /* ---------------------------------------------------------- how long a password would last
      A rough count of the guesses it would take, against the scrypt setting
@@ -138,7 +185,7 @@
   }
 
   /* ---------------------------------------------------------- lock after fifteen idle minutes
-     While you are signed in the server can read your notes, so a session
+     While you are signed in your key is open in this session, so a tab
      left open on a shared computer is the weak point. After fifteen minutes
      without a key press, click or scroll, SafeBook signs out by itself. */
   var signOut = document.getElementById("signOut");

@@ -11,7 +11,7 @@ from secureapp import keys
 from secureapp.crypto import aead_decrypt, new_key
 from secureapp.models import Message, Post
 from secureapp.rsa_utils import generate_rsa_keypair
-from secureapp.views import AAD_EMAIL, AAD_POST_BODY, AAD_PRIVKEY
+from secureapp.keyring import AAD_EMAIL, AAD_PRIVKEY
 
 from .test_auth import PASSWORD, make_account
 
@@ -42,7 +42,7 @@ class ServerCannotReadTests(TestCase):
     def setUp(self):
         self.alice, self.dek, _ = full_account("alice")
         client = sign_in("alice")
-        client.post("/posts/new/", {"title": "Private note", "body": "the vault code is 4417"})
+        client.post("/posts/new/", {"body": "the vault code is 4417", "audience": "me"})
         self.post = Post.objects.get(user=self.alice)
 
     def test_a_private_post_has_no_key_the_server_can_open(self):
@@ -53,7 +53,7 @@ class ServerCannotReadTests(TestCase):
             keys.unwrap_post_key_for_public(self.post.key_owner)
 
     def test_the_plaintext_is_not_in_the_row(self):
-        blob = bytes(self.post.body_ct) + bytes(self.post.title_ct)
+        blob = bytes(self.post.body_ct)
         self.assertNotIn(b"4417", blob)
         self.assertNotIn(b"vault", blob)
 
@@ -80,37 +80,42 @@ class PublishingTests(TestCase):
     def setUp(self):
         self.alice, self.dek, _ = full_account("alice")
         self.client = sign_in("alice")
-        self.client.post("/posts/new/", {"title": "Open letter", "body": "printable"})
+        self.client.post("/posts/new/", {"body": "an open letter, printable", "audience": "me"})
         self.post = Post.objects.get(user=self.alice)
+
+    def _audience(self, audience):
+        self.client.post(f"/posts/{self.post.id}/audience/", {"audience": audience})
+        self.post.refresh_from_db()
 
     def test_publishing_does_not_re_encrypt_the_post(self):
         """Only a wrapped key is added. That is the point of an envelope."""
         before = bytes(self.post.body_ct)
-        self.client.post(f"/posts/{self.post.id}/visibility/")
-        self.post.refresh_from_db()
+        self._audience("public")
         self.assertTrue(self.post.is_public)
         self.assertEqual(bytes(self.post.body_ct), before)
         self.assertIsNotNone(self.post.key_public)
 
     def test_the_two_wrappings_hold_the_same_key(self):
-        self.client.post(f"/posts/{self.post.id}/visibility/")
-        self.post.refresh_from_db()
+        self._audience("public")
         self.assertEqual(keys.unwrap_post_key_for_owner(self.post.key_owner, self.dek),
                          keys.unwrap_post_key_for_public(self.post.key_public))
 
     def test_unpublishing_drops_the_server_key(self):
-        self.client.post(f"/posts/{self.post.id}/visibility/")
-        self.client.post(f"/posts/{self.post.id}/visibility/")
-        self.post.refresh_from_db()
+        self._audience("public")
+        self._audience("me")
         self.assertFalse(self.post.is_public)
         self.assertIsNone(self.post.key_public)
 
-    def test_the_feed_only_carries_published_posts(self):
-        _, _, _ = full_account("bob")
+    def test_an_unknown_audience_changes_nothing(self):
+        self._audience("everyone-please")
+        self.assertEqual(self.post.audience, "me")
+
+    def test_the_feed_of_a_stranger_only_carries_public_posts(self):
+        full_account("bob")
         bob = sign_in("bob")
-        self.assertNotContains(bob.get("/feed/"), "Open letter")
-        self.client.post(f"/posts/{self.post.id}/visibility/")
-        self.assertContains(bob.get("/feed/"), "Open letter")
+        self.assertNotContains(bob.get("/feed/"), "printable")
+        self._audience("public")
+        self.assertContains(bob.get("/feed/"), "printable")
 
 
 class AccessControlTests(TestCase):
@@ -118,7 +123,7 @@ class AccessControlTests(TestCase):
         full_account("alice")
         full_account("bob")
         alice = sign_in("alice")
-        alice.post("/posts/new/", {"title": "Alice only", "body": "not for bob"})
+        alice.post("/posts/new/", {"body": "not for bob", "audience": "me"})
         self.post = Post.objects.get(user__username="alice")
 
     def test_another_user_cannot_open_a_private_post_by_its_id(self):
@@ -129,19 +134,26 @@ class AccessControlTests(TestCase):
         self.assertEqual(sign_in("bob").post(f"/posts/{self.post.id}/delete/").status_code, 404)
 
     def test_another_user_cannot_publish_it(self):
-        sign_in("bob").post(f"/posts/{self.post.id}/visibility/")
+        response = sign_in("bob").post(f"/posts/{self.post.id}/audience/", {"audience": "public"})
+        self.assertEqual(response.status_code, 404)
         self.post.refresh_from_db()
         self.assertFalse(self.post.is_public)
 
+    def test_another_user_cannot_comment_on_it(self):
+        response = sign_in("bob").post(f"/posts/{self.post.id}/comments/", {"body": "hi"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_another_user_cannot_like_it(self):
+        self.assertEqual(sign_in("bob").post(f"/posts/{self.post.id}/like/").status_code, 404)
+
     def test_signed_out_visitors_are_sent_to_the_login_page(self):
-        for url in ("/feed/", "/messages/", "/account/", "/lab/", "/people/"):
+        for url in ("/feed/", "/messages/", "/account/", "/lab/", "/friends/", "/u/alice/"):
             self.assertRedirects(Client().get(url), f"/login/?next={url}",
                                  fetch_redirect_response=False)
 
-    def test_the_front_page_is_public_and_shows_nobody_s_notes(self):
-        """Visitors get the front page; nothing of anyone's file is on it."""
+    def test_the_front_page_is_public_and_shows_nobody_s_posts(self):
+        """Visitors get the front page; none of anyone's posts are on it."""
         response = Client().get("/")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "landing.html")
-        self.assertNotContains(response, "Alice only")
         self.assertNotContains(response, "not for bob")

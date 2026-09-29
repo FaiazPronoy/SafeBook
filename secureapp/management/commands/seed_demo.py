@@ -1,65 +1,85 @@
 """Fill an empty database with enough to look at.
 
 Every account here is built through the same code path as a real
-registration, so the seeded rows are encrypted exactly like anyone else's -
-there is no back door that writes plaintext.
+registration, and every post, comment and message is sealed by the same
+functions the views use, so the seeded rows are encrypted exactly like
+anyone else's. There is no back door that writes plaintext.
 """
+
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 
-from keymgmt.services import get_active_kek
 from secureapp import keys
 from secureapp.crypto import aead_encrypt, new_key
 from secureapp.demo import PEOPLE
-from secureapp.mac import CTX_MESSAGE, CTX_POST, row_mac
-from secureapp.models import Message, Post
+from secureapp.keyring import (AAD_EMAIL, AAD_PHONE, AAD_PRIVKEY, seal_comment,
+                               seal_message, seal_post, set_audience)
+from secureapp.models import Comment, FriendRequest, Like, Message, Post
 from secureapp.recovery import new_recovery_code, normalise
-from secureapp.rsa_utils import generate_rsa_keypair, load_public_key_from_pem, rsa_wrap_session_key
-from secureapp.views import (AAD_EMAIL, AAD_MSG_BODY, AAD_MSG_TITLE, AAD_PHONE,
-                             AAD_POST_BODY, AAD_POST_TITLE, AAD_PRIVKEY)
+from secureapp.rsa_utils import generate_rsa_keypair
 
 Account = get_user_model()
 
+FRIENDS = [("nusrat", "faiaz"), ("tanvir", "nusrat"), ("nusrat", "mim"), ("faiaz", "tanvir")]
+PENDING = [("mim", "faiaz")]
 
+# author, audience, hours ago, text, [(commenter, text)], [likers]
 POSTS = [
-    ("nusrat", True, "Why I stopped trusting 'end to end' badges",
-     "A padlock in a corner of the screen is a picture, not a proof. The "
-     "question worth asking is which key opens the data and who is holding "
-     "it. If the answer is the same company that stores it, the badge is "
-     "decoration."),
-    ("nusrat", False, "Recovery code, written down",
-     "Kept in the same envelope as the passport. If I lose the password this "
-     "is the only way back in, and nobody at SafeBook can help me."),
-    ("faiaz", True, "Notes on scrypt parameters",
-     "N is the memory knob. Going from 2^14 to 2^16 costs me a fifth of a "
-     "second at login and costs an attacker four times as much for every "
-     "guess in their wordlist. That trade is worth taking."),
-    ("faiaz", False, "Bank details",
-     "Account 4417, branch Mirpur. Encrypted with a key the server cannot "
-     "unwrap while I am signed out."),
-    ("tanvir", True, "ECB is not encryption, it is a substitution",
-     "Ran the padlock picture through it in the lab page. You can still see "
-     "the padlock. Same key, same cipher, different mode, completely "
-     "different answer to whether anything was hidden."),
+    ("tanvir", "public", 3,
+     "Sunset from a rooftop in Lalbagh. Twelve floors of stairs, zero regrets. "
+     "The fort looks like a painting from up here.",
+     [("nusrat", "Which building? I want to go before the rains come back."),
+      ("tanvir", "The blue one behind the bakery. Bring water.")],
+     ["nusrat", "faiaz", "mim"]),
+    ("faiaz", "friends", 6,
+     "Finally moved my notes off the cloud drive I did not trust. Took a whole "
+     "evening. If you need the CSE447 slides, ask me here, not on the group chat.",
+     [("nusrat", "Asking here then. Week 9 please, the one on key exchange.")],
+     ["nusrat"]),
+    ("nusrat", "friends", 20,
+     "Passed the viva. They asked why a friends-only post needs a copy of the "
+     "key for every friend, and I got to draw this app on the whiteboard.",
+     [("mim", "Proud of you!!"), ("faiaz", "Told you the diagram would carry it."),
+      ("tanvir", "Treat is on you now.")],
+     ["mim", "faiaz", "tanvir"]),
+    ("nusrat", "me", 26,
+     "Recovery code is in the envelope with my passport. If I forget my password "
+     "this is the only way back in, and nobody at SafeBook can help me.",
+     [], []),
+    ("mim", "public", 30,
+     "Hot take: a padlock icon in a corner is decoration, not proof. Ask who "
+     "holds the key.",
+     [("faiaz", "Framing this.")],
+     ["faiaz", "tanvir"]),
+    ("faiaz", "me", 44,
+     "Bank details. Account 4417, branch Mirpur. Encrypted with a key the server "
+     "cannot unwrap while I am signed out.",
+     [], []),
+    ("tanvir", "friends", 52,
+     "Anyone free on Friday? Thinking biryani in Old Dhaka and then the "
+     "riverside after dark.",
+     [("faiaz", "In. Star Kabab first though."), ("nusrat", "Only if we walk back.")],
+     ["faiaz", "nusrat"]),
 ]
 
-MESSAGES = [
-    ("faiaz", "nusrat", False, "Your fingerprint",
-     "Read your key fingerprint back to me over the phone before I send "
-     "anything real. If it does not match what SafeBook shows me, someone "
-     "has swapped a key."),
-    ("nusrat", "faiaz", False, "Re: your fingerprint",
-     "Checked, both ends match. Sending the draft tonight."),
-    ("tanvir", "nusrat", True, "Anonymous note",
-     "The report you asked about is on the shared drive. I would rather not "
-     "have my name on this one."),
+# sender, recipient, minutes ago, text
+CHATS = [
+    ("faiaz", "nusrat", 300, "Before I send the draft: read your safety number back to me?"),
+    ("nusrat", "faiaz", 296, "Checked on the phone. Both ends match."),
+    ("faiaz", "nusrat", 295, "Perfect, sending it tonight."),
+    ("tanvir", "nusrat", 90, "The photos from the rooftop are up, public this time."),
+    ("nusrat", "tanvir", 84, "Saw them. The third one is my new wallpaper."),
+    ("tanvir", "nusrat", 12, "Friday still on?"),
+    ("mim", "nusrat", 40, "Can you tell Faiaz to accept my request? 😅"),
 ]
 
 
 class Command(BaseCommand):
-    help = "Create demo accounts, posts and messages in an empty database."
+    help = "Create demo people, friendships, posts, comments and chats in an empty database."
 
     def add_arguments(self, parser):
         parser.add_argument("--reset", action="store_true",
@@ -67,17 +87,25 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        names = [p[0] for p in PEOPLE]
+        present = Account.objects.filter(username__in=names).count()
+        if present and present < len(names) and not options["reset"]:
+            # an older demo set, from before friends existed: only the demo
+            # accounts are touched, never anyone else's
+            self.stdout.write("An older set of demo accounts is here; rebuilding them.")
+            options["reset"] = True
         if options["reset"]:
-            Account.objects.filter(username__in=[p[0] for p in PEOPLE]).delete()
-
-        if Account.objects.filter(username=PEOPLE[0][0]).exists():
+            Account.objects.filter(username__in=names).delete()
+        elif present:
             self.stdout.write(self.style.WARNING(
                 "The demo accounts are already here. Use --reset to rebuild them."))
             return
 
-        deks, codes = {}, {}
-        for username, password, email, phone in PEOPLE:
-            user = Account.objects.create_user(username=username, password=password)
+        now = timezone.now()
+        people, deks, codes = {}, {}, {}
+        for username, password, name, email, phone, bio in PEOPLE:
+            user = Account.objects.create_user(username=username, password=password,
+                                               display_name=name, bio=bio)
             dek = new_key()
             code = new_recovery_code()
 
@@ -91,47 +119,48 @@ class Command(BaseCommand):
             user.privkey_nonce, user.privkey_ct = aead_encrypt(dek, priv_der, AAD_PRIVKEY)
             user.save()
 
-            deks[username], codes[username] = dek, code
+            people[username], deks[username], codes[username] = user, dek, code
 
-        kek_id = get_active_kek()[1]
-        for author, is_public, title, body in POSTS:
-            user = Account.objects.get(username=author)
+        for a, b in FRIENDS:
+            FriendRequest.objects.create(from_user=people[a], to_user=people[b], accepted_at=now)
+        for a, b in PENDING:
+            FriendRequest.objects.create(from_user=people[a], to_user=people[b])
+
+        def friends_of(name):
+            mine = {b for a, b in FRIENDS if a == name} | {a for a, b in FRIENDS if b == name}
+            return [people[n] for n in mine]
+
+        for author, audience, hours, text, comments, likers in POSTS:
             post_key = keys.new_post_key()
-            post = Post(user=user, is_public=is_public)
-            post.key_owner = keys.wrap_post_key_for_owner(post_key, deks[author])
-            if is_public:
-                post.key_public = keys.wrap_post_key_for_public(post_key)
-                post.key_public_kek_id = kek_id
-            post.title_nonce, post.title_ct = aead_encrypt(post_key, title.encode(), AAD_POST_TITLE)
-            post.body_nonce, post.body_ct = aead_encrypt(post_key, body.encode(), AAD_POST_BODY)
-            post.mac = row_mac(post_key, CTX_POST, str(user.id).encode(),
-                               post.title_nonce, post.title_ct, post.body_nonce, post.body_ct)
-            post.save()
+            post = Post(user=people[author],
+                        key_owner=keys.wrap_post_key_for_owner(post_key, deks[author]))
+            seal_post(post, post_key, text)
+            set_audience(post, post_key, audience, friends_of(author))
+            Post.objects.filter(id=post.id).update(created_at=now - timedelta(hours=hours))
 
-        for sender_name, recipient_name, anonymous, title, body in MESSAGES:
-            sender = Account.objects.get(username=sender_name)
-            recipient = Account.objects.get(username=recipient_name)
-            session_key = new_key()
+            for n, (who, said) in enumerate(comments):
+                comment = Comment(post=post, author=people[who])
+                seal_comment(comment, post_key, said)
+                comment.save()
+                Comment.objects.filter(id=comment.id).update(
+                    created_at=now - timedelta(hours=hours) + timedelta(minutes=20 * (n + 1)))
+            for who in likers:
+                Like.objects.create(post=post, user=people[who])
 
-            message = Message(recipient=recipient,
-                              sender=None if anonymous else sender,
-                              is_anonymous=anonymous)
-            message.title_nonce, message.title_ct = aead_encrypt(session_key, title.encode(), AAD_MSG_TITLE)
-            message.body_nonce, message.body_ct = aead_encrypt(session_key, body.encode(), AAD_MSG_BODY)
-            message.mac = row_mac(session_key, CTX_MESSAGE, str(recipient.id).encode(),
-                                  message.title_nonce, message.title_ct,
-                                  message.body_nonce, message.body_ct)
-            message.key_for_recipient = rsa_wrap_session_key(
-                load_public_key_from_pem(recipient.public_key_pem.encode()), session_key)
-            if not anonymous:
-                message.key_for_sender = rsa_wrap_session_key(
-                    load_public_key_from_pem(sender.public_key_pem.encode()), session_key)
+        for sender, recipient, minutes, text in CHATS:
+            message = Message(sender=people[sender], recipient=people[recipient])
+            seal_message(message, text)
             message.save()
+            at = now - timedelta(minutes=minutes)
+            # everything but the last word in each chat has been read
+            Message.objects.filter(id=message.id).update(
+                created_at=at, read_at=at + timedelta(minutes=1) if minutes > 40 else None)
 
         self.stdout.write(self.style.SUCCESS(
-            f"Seeded {len(PEOPLE)} accounts, {len(POSTS)} posts, {len(MESSAGES)} messages.\n"))
+            f"Seeded {len(PEOPLE)} people, {len(FRIENDS)} friendships, {len(POSTS)} posts, "
+            f"{len(CHATS)} chat messages.\n"))
         self.stdout.write("Sign in with:")
-        for username, password, _, _ in PEOPLE:
+        for username, password, *_ in PEOPLE:
             self.stdout.write(f"    {username:<8} {password}    recovery {codes[username]}")
         self.stdout.write(self.style.WARNING(
             "\nThose recovery codes are printed once, here, and are not "
