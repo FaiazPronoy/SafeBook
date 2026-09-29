@@ -37,12 +37,12 @@ POSTS = [
      ["nusrat", "faiaz", "mim"]),
     ("faiaz", "friends", 6,
      "Finally moved my notes off the cloud drive I did not trust. Took a whole "
-     "evening. If you need the CSE447 slides, ask me here, not on the group chat.",
+     "evening. If you need the crypto slides, ask me here, not on the group chat.",
      [("nusrat", "Asking here then. Week 9 please, the one on key exchange.")],
      ["nusrat"]),
     ("nusrat", "friends", 20,
-     "Passed the viva. They asked why a friends-only post needs a copy of the "
-     "key for every friend, and I got to draw this app on the whiteboard.",
+     "Gave my first talk today. Someone asked why a friends-only post needs a "
+     "copy of the key for every friend, and I got to draw it on the whiteboard.",
      [("mim", "Proud of you!!"), ("faiaz", "Told you the diagram would carry it."),
       ("tanvir", "Treat is on you now.")],
      ["mim", "faiaz", "tanvir"]),

@@ -10,7 +10,6 @@ friends-only post, the comments under it and every chat message are stored as
 ciphertext that nobody at SafeBook holds a key to, even with the database, the
 `.env` and the disk they sit on.
 
-Built for **CSE447 Cryptography and Cryptanalysis** at BRAC University.
 Django 5, SQLite, and the `cryptography` library.
 
 ---
@@ -162,7 +161,7 @@ made of, and hiding them needs a different design. The front page says so.
 
 ---
 
-## Bugs found in the version I submitted
+## Bugs found in the first version
 
 The original is the first commit in this repository. It was a private
 notebook with a messenger rather than a social network; these were all

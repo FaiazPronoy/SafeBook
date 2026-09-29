@@ -6,7 +6,7 @@
 <section class="hero">
   <div class="hero-text">
     <p class="eyebrow">{% icon "lock" %} Encrypted social network</p>
-    <h1>Share with friends. <span class="hl">Not with us.</span></h1>
+    <h1 class="stair"><span>Share with friends.</span><span class="step-2 hl">Not with us.</span></h1>
     <p class="lede">SafeBook works like the social apps you know: post, comment, like and
       chat with friends. The difference is that everything is locked before it is saved,
       with keys that only you and the people you choose hold. The server stores your posts
@@ -24,8 +24,8 @@
         <div class="who"><span class="nm">Nusrat Jahan</span>
           <div class="meta">20 hours ago · <span class="aud aud-friends">{% icon "users" %}<span>Friends</span></span></div></div>
       </header>
-      <div class="post-body">Passed the viva! They asked why a friends-only post needs a key for
-        every friend, and I got to draw this app on the whiteboard.</div>
+      <div class="post-body">Gave my first talk today! Someone asked why a friends-only post needs a
+        key for every friend, and I got to draw it on the whiteboard.</div>
       <p class="lockline lock-friends">{% icon "key" %} Encrypted for Nusrat and her 3 friends.</p>
     </article>
     <div class="server-view">
@@ -37,7 +37,11 @@
 </section>
 
 <section class="features" aria-labelledby="featTitle">
-  <h2 id="featTitle">What you can do</h2>
+  <div class="sect-head">
+    <p class="eyebrow">Everything you would expect</p>
+    <h2 id="featTitle">What you can do</h2>
+    <p>The parts of a social app people actually use, with a lock built into each one.</p>
+  </div>
   <div class="feature-grid">
     <div class="feature">
       <span class="f-ico">{% icon "users" %}</span>
@@ -66,11 +70,14 @@
   </div>
 </section>
 
+<div class="sect-head">
+  <p class="eyebrow">No fine print</p>
+  <h2 id="whoTitle">Who can read what</h2>
+  <p>Not a privacy setting on top of a readable database. Each tick is a person holding a
+    key; each cross is somebody who does not have one.</p>
+</div>
 <section class="who-reads card" aria-labelledby="whoTitle">
   <div class="card-body">
-    <h2 id="whoTitle">Who can read what</h2>
-    <p class="muted">Not a privacy setting on top of a readable database. Each tick below is a
-      person holding a key; each cross is somebody who does not have one.</p>
     <div class="table-wrap">
       <table class="matrix">
         <thead>
@@ -99,9 +106,12 @@
 
 {% if demo %}
 <section id="try" class="try" aria-labelledby="tryTitle">
-  <h2 id="tryTitle">Try it as one of them</h2>
-  <p class="muted">These people already use this copy of SafeBook. Pick one and you are signed
-    in as them, with their friends, posts and chats. Nothing to type.</p>
+  <div class="sect-head">
+    <p class="eyebrow">Look around first</p>
+    <h2 id="tryTitle">Try it as one of them</h2>
+    <p>These people already use this copy of SafeBook. Pick one and you are signed in as
+      them, with their friends, posts and chats. Nothing to type.</p>
+  </div>
   {% include "_demo_people.html" %}
 </section>
 {% endif %}

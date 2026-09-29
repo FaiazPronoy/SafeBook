@@ -4,7 +4,7 @@ title SafeBook
 cd /d "%~dp0"
 
 echo ==========================================
-echo   SAFEBOOK  -  CSE447
+echo   SAFEBOOK
 echo ==========================================
 echo.
 

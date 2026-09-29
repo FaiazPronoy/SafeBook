@@ -78,12 +78,21 @@ CONTRAST_JS = r"""
     const box = el.getBoundingClientRect();
     if (cs.visibility === 'hidden' || cs.display === 'none' || box.width === 0 || box.height === 0) continue;
     if (el.closest('[aria-hidden="true"], .sr-only, [hidden], option, script, style, dialog:not([open]), .redact')) continue;
-    const fg = parse(cs.color);
-    if (!fg) continue;
     const size = parseFloat(cs.fontSize), weight = parseInt(cs.fontWeight, 10);
     const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3 : 4.5;
-    const bg = background(el);
-    const r = ratio(fg.a < 1 ? over(fg, bg) : fg, bg);
+    // gradient text: every colour in the gradient has to pass on its own
+    const clipped = (cs.backgroundClip || cs.webkitBackgroundClip || '').includes('text');
+    const bg = background(clipped ? el.parentElement : el);
+    let r;
+    if (clipped) {
+      const solid = stops(cs.backgroundImage);
+      if (!solid.length) continue;
+      r = Math.min(...solid.map(c => ratio(c, bg)));
+    } else {
+      const fg = parse(cs.color);
+      if (!fg) continue;
+      r = ratio(fg.a < 1 ? over(fg, bg) : fg, bg);
+    }
     checked++;
     if (r < need) bad.push({text: text.slice(0, 40), ratio: Math.round(r * 100) / 100, need});
   }
