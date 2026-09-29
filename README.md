@@ -16,7 +16,8 @@ Django 5, SQLite, and the `cryptography` library.
 
 On Windows, double-click **`RUN-SafeBook.bat`**. It builds the virtual
 environment, writes a `.env` with fresh keys the first time, loads the demo
-files and opens http://127.0.0.1:8000/.
+files and opens http://127.0.0.1:8010/ (8010, so it can run beside
+Rentorium, which uses 8000).
 
 By hand:
 

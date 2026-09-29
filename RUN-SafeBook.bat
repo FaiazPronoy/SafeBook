@@ -59,11 +59,11 @@ echo [4/5] Preparing the database ...
 "%VPY%" manage.py migrate --noinput
 "%VPY%" manage.py seed_demo
 
-echo [5/5] Starting SafeBook at http://127.0.0.1:8000
+echo [5/5] Starting SafeBook at http://127.0.0.1:8010
 echo.
 echo   Demo files are on the sign in page: pick a folder, nothing to type.
 echo   Close this window to stop SafeBook.
 echo.
-start "" http://127.0.0.1:8000
-"%VPY%" manage.py runserver 127.0.0.1:8000
+start "" http://127.0.0.1:8010
+"%VPY%" manage.py runserver 127.0.0.1:8010
 pause
