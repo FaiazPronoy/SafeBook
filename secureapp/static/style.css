@@ -1045,6 +1045,7 @@ details.deep .deep-body p:last-child { margin-bottom: 0; }
   .kv { grid-template-columns: 1fr; gap: var(--s1); }
   .kv dt { margin-top: var(--s2); }
   .list li { flex-direction: column; align-items: flex-start; gap: var(--s3); }
+  .two-sheets { min-height: 0; }
   .sheet { position: relative; width: 100%; top: 0; left: 0; right: 0; }
   .sheet-stored { margin-top: -20px; }
   .lab-hero::after { display: none; }
