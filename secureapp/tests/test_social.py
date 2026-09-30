@@ -81,6 +81,30 @@ class FriendsPostTests(TestCase):
         self.assertFalse(self.post.shares.exists())
         self.assertEqual(bytes(self.post.body_ct), before)
 
+    def test_editing_rewrites_the_text_and_keeps_every_key(self):
+        keys_before = (bytes(self.post.key_owner), bytes(self.post.shares.get().wrapped_key))
+        text_before = bytes(self.post.body_ct)
+        self.author.post(f"/posts/{self.post.id}/edit/", {"body": "party moved to saturday"})
+        self.post.refresh_from_db()
+        self.assertNotEqual(bytes(self.post.body_ct), text_before)
+        self.assertNotIn(b"saturday", bytes(self.post.body_ct))
+        self.assertEqual((bytes(self.post.key_owner), bytes(self.post.shares.get().wrapped_key)),
+                         keys_before)
+        self.assertIsNotNone(self.post.edited_at)
+        page = sign_in("bob").get("/")
+        self.assertContains(page, "party moved to saturday")
+        self.assertNotContains(page, "party at mine on friday")
+
+    def test_nobody_else_can_edit_it(self):
+        response = sign_in("bob").post(f"/posts/{self.post.id}/edit/", {"body": "hijacked"})
+        self.assertEqual(response.status_code, 404)
+
+    def test_an_empty_edit_changes_nothing(self):
+        before = bytes(self.post.body_ct)
+        self.author.post(f"/posts/{self.post.id}/edit/", {"body": "   "})
+        self.post.refresh_from_db()
+        self.assertEqual(bytes(self.post.body_ct), before)
+
     def test_deleting_the_post_deletes_every_copy_of_its_key(self):
         self.author.post(f"/posts/{self.post.id}/delete/")
         self.assertFalse(PostShare.objects.exists())

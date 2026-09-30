@@ -172,6 +172,38 @@ def post_audience_view(request, ring, post_id: int):
 
 
 @needs_key
+def post_edit_view(request, ring, post_id: int):
+    """Rewrite the text under the key the post already has.
+
+    Every copy of that key, the friends' included, keeps working, so an edit
+    hands nothing out again and takes nothing back. Only the ciphertext, its
+    nonce and the row seal change.
+    """
+    post = get_object_or_404(Post, id=post_id, user=ring.user)
+    post_key = keys.unwrap_post_key_for_owner(post.key_owner, ring.dek)
+    body = open_post_body(post, post_key)
+    if body is None:
+        flash.error(request, "This post could not be opened, so it cannot be edited.")
+        return redirect("index")
+
+    if request.method == "POST":
+        text = request.POST.get("body", "").strip()
+        if not text:
+            flash.error(request, "A post needs some words in it.")
+        elif len(text) > 5000:
+            flash.error(request, "That is longer than a post can be.")
+        else:
+            seal_post(post, post_key, text)
+            post.edited_at = timezone.now()
+            post.save(update_fields=["body_nonce", "body_ct", "mac", "edited_at"])
+            flash.success(request, "Post updated.")
+            return redirect("post_detail", post_id=post.id)
+        body = text or body
+
+    return render(request, "post_edit.html", {"post": post, "body": body})
+
+
+@needs_key
 def post_delete_view(request, ring, post_id: int):
     post = get_object_or_404(Post, id=post_id, user=ring.user)
     if request.method == "POST":

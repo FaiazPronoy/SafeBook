@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load sb %}
+{% block title %}Edit post · SafeBook{% endblock %}
+{% block content %}
+<div class="narrow">
+  <a class="back" href="{% url 'post_detail' post.id %}">{% icon "back" %} Back to the post</a>
+  <section class="card composer" aria-labelledby="editTitle">
+    <h1 id="editTitle" class="sr-only">Edit post</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div class="composer-top">
+        {% avatar user link=False %}
+        <label class="sr-only" for="id_body">Post</label>
+        <textarea id="id_body" name="body" rows="5" maxlength="5000" required>{{ body }}</textarea>
+      </div>
+      <div class="composer-foot">
+        <p class="aud-hint" style="margin:0">{% icon "key" %} Same key, same readers. Only the
+          words change.</p>
+        <div class="actions">
+          <a class="btn-soft" href="{% url 'post_detail' post.id %}">Cancel</a>
+          <button class="btn" type="submit">Save changes</button>
+        </div>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

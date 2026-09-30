@@ -57,6 +57,8 @@ request, and sign in as Mim again.
 
 - **Post** to *Friends*, *Public* or *Only me*, and change it later from the
   post's menu. The line under every post says in plain words who holds a key.
+- **Edit a post** after it is up. The new words are sealed under the same key,
+  so every friend's copy keeps working and nothing is handed out again.
 - **Comment and like.** Comments are encrypted with the post's own key.
 - **Add friends**: send, confirm, decline and cancel requests; unfriend.
 - **Chat** with anyone, one conversation per person.
@@ -300,7 +302,7 @@ cookie is a key with no ciphertext.
 python manage.py test
 ```
 
-**121 tests, all passing**, grouped by what each one defends:
+**124 tests, all passing**, grouped by what each one defends:
 
 - `test_primitives.py` - AAD binding, fresh nonces, MAC domain separation,
   length prefix collisions, scrypt salting
@@ -313,8 +315,8 @@ python manage.py test
 - `test_social.py` - a friend's copy of the key opening with their private key
   and nobody else getting one, a stranger unable to read or comment, new
   friends waiting for the author, unfriending taking the copies back,
-  audience changes leaving the ciphertext alone, friend request rules, likes,
-  and `next` never leading off the site
+  audience changes leaving the ciphertext alone, an edit keeping every key,
+  friend request rules, likes, and `next` never leading off the site
 - `test_integrity.py` - a flipped byte or a wrecked MAC keeping a post, a
   comment or a message off the screen, a row re-homed onto another user or a
   comment moved under another post failing to verify

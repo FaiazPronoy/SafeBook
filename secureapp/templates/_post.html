@@ -7,6 +7,7 @@
       <a class="nm" href="{% url 'profile' a.username %}">{{ a.name }}</a>
       <div class="meta">
         <a href="{% url 'post_detail' p.id %}"><time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|ago }}</time></a>
+        {% if p.edited_at %}<span aria-hidden="true">·</span> <span title="Edited {{ p.edited_at|ago }}">edited</span>{% endif %}
         <span aria-hidden="true">·</span> {% include "_aud.html" %}
       </div>
     </div>
@@ -26,6 +27,7 @@
             </form>
           {% endfor %}
           <hr>
+          <a href="{% url 'post_edit' p.id %}">{% icon "edit" %} Edit post</a>
           <a href="{% url 'post_detail' p.id %}">{% icon "key" %} Who holds a key</a>
           <a class="danger" href="{% url 'post_delete' p.id %}">{% icon "trash" %} Delete post</a>
         </div>

@@ -19,6 +19,7 @@ urlpatterns = [
     path("posts/new/", social.post_new_view, name="post_new"),
     path("posts/<int:post_id>/", social.post_detail_view, name="post_detail"),
     path("posts/<int:post_id>/audience/", social.post_audience_view, name="post_audience"),
+    path("posts/<int:post_id>/edit/", social.post_edit_view, name="post_edit"),
     path("posts/<int:post_id>/delete/", social.post_delete_view, name="post_delete"),
     path("posts/<int:post_id>/like/", social.post_like_view, name="post_like"),
     path("posts/<int:post_id>/comments/", social.comment_new_view, name="comment_new"),
