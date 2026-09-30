@@ -58,7 +58,8 @@
     {% endif %}
 
     <div class="tb-right">
-      <button id="theme" class="round-btn" type="button" aria-label="Switch between light and dark">{% icon "moon" %}</button>
+      <button id="theme" class="round-btn" type="button" aria-label="Switch to light">
+        <span class="to-dark">{% icon "moon" %}</span><span class="to-light">{% icon "sun" %}</span></button>
       {% if user.is_authenticated %}
         <details class="menu me-menu">
           <summary aria-label="Your menu">{% avatar user link=False %}</summary>

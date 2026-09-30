@@ -13,10 +13,17 @@
   /* ---------------------------------------------------------- theme */
   var themeButton = document.getElementById("theme");
   if (themeButton) {
+    var label = function () {
+      var dark = root.getAttribute("data-theme") === "dark";
+      themeButton.setAttribute("aria-label", dark ? "Switch to light" : "Switch to dark");
+      themeButton.title = dark ? "Switch to light" : "Switch to dark";
+    };
+    label();
     themeButton.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("safebook-theme", next); } catch (e) {}
+      label();
     });
   }
 

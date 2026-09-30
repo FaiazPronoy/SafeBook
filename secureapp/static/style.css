@@ -169,6 +169,9 @@ button { font: inherit; color: inherit; }
   display: inline-grid; place-items: center; flex: none;
 }
 .topbar .round-btn { background: rgba(255, 255, 255, .14); color: var(--on-bar); }
+/* the button shows where it will take you: a sun in the dark, a moon in the light */
+#theme .to-dark, #theme .to-light { display: inline-grid; }
+[data-theme="dark"] #theme .to-dark, [data-theme="light"] #theme .to-light { display: none; }
 .topbar .round-btn:hover { background: rgba(255, 255, 255, .24); }
 .topbar .btn-ghost { color: var(--on-bar); }
 .topbar .btn-ghost:hover { background: rgba(255, 255, 255, .14); }
