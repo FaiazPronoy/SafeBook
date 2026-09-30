@@ -116,6 +116,8 @@ def main():
         for theme in ("light", "dark"):
             print("\n=== %s ===" % theme)
             ctx = browser.new_context(viewport={"width": 1366, "height": 900}, color_scheme=theme)
+            # dark is the default whatever the system says, so pick the theme outright
+            ctx.add_init_script("try { localStorage.setItem('safebook-theme', '%s') } catch (e) {}" % theme)
             page = ctx.new_page()
             errors, statuses, fails, total = [], [], [], 0
             page.on("pageerror", lambda e: errors.append(str(e)))

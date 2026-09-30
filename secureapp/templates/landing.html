@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load sb %}
-{% block title %}SafeBook · share with friends, not with the server{% endblock %}
+{% block title %}SafeBook | An Encrypted Social Network{% endblock %}
 {% block content %}
 
 <section class="hero">
@@ -15,6 +15,8 @@
       <a class="btn big" href="#try">Try a demo account</a>
       <a class="btn-soft big" href="{% url 'register' %}">Create an account</a>
     </div>
+    <p class="sysline"><span class="led" aria-hidden="true"></span> <b>keys stay with people</b>
+      <span>AES-256-GCM</span><span>RSA-2048</span><span>scrypt</span></p>
   </div>
 
   <div class="hero-demo" aria-label="One post, as a friend sees it and as the server stores it">

@@ -71,14 +71,17 @@ request, and sign in as Mim again.
 
 ### What it looks like
 
-A social app first, so it looks like one: a white top bar with the search on
-the left and Home, Friends, Chats and How it works as tabs in the middle; the
-feed down the centre, shortcuts on the left, friend requests and contacts on
-the right. Royal blue for anything you press. Mint is kept for one job: the
-lock line under each post, and anything else that says who holds a key.
-Avatars are initials in a colour worked out from the username. DM Sans
-throughout, Roboto Mono only where bytes are shown as bytes. Light and dark,
-and on a phone the tabs drop to a second row and a chat opens full screen.
+A security console that happens to be a social app. The layout is the one
+people know: a top bar with the search on the left and Home, Friends, Chats
+and How it works as tabs, the feed down the centre, shortcuts on the left,
+friend requests and contacts on the right. Behind it sits a faint circuit
+board and grid with one slow scan line, near black navy by default. Neon
+green is for anything you press; cyan is kept for one job, the lock line
+under each post and anything else that says who holds a key. Every panel has
+a small bracket on its corner. Chakra Petch for headings and labels, IBM Plex
+Sans for reading, Fira Code wherever bytes, keys and fingerprints appear.
+Dark is the default; light is a daylight version of the same console. On a
+phone the tabs drop to a second row and a chat opens full screen.
 
 ### Small things that matter here
 

@@ -1,24 +1,22 @@
 {% load static sb %}<!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}SafeBook{% endblock %}</title>
+  <title>{% block title %}SafeBook | An Encrypted Social Network{% endblock %}</title>
   <meta name="description" content="SafeBook is a social network where your posts, comments and chats are locked with keys only you and your friends hold. The server stores them without a key of its own.">
-  <meta name="theme-color" content="#07545C" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#082C2F" media="(prefers-color-scheme: dark)">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta name="theme-color" content="#050910">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..600&family=Plus+Jakarta+Sans:wght@600..800&family=Roboto+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500&display=swap">
   <link rel="stylesheet" href="{% static 'style.css' %}">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z' fill='%230B7580'/><circle cx='16' cy='11' r='3.2' fill='white'/><path d='M14.4 13h3.2l.9 5h-5z' fill='white'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z' fill='%23050910'/><circle cx='16' cy='11' r='3.2' fill='%2300E08A'/><path d='M14.4 13h3.2l.9 5h-5z' fill='%2300E08A'/></svg>">
   <script>
-    // set the theme before the first paint, so the page never flashes white
+    // dark unless this visitor chose light, set before the first paint
     (function () {
       try {
         var stored = localStorage.getItem("safebook-theme");
-        var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.setAttribute("data-theme", stored || (dark ? "dark" : "light"));
+        document.documentElement.setAttribute("data-theme", stored || "dark");
       } catch (e) {}
     })();
   </script>
@@ -32,7 +30,7 @@
   <div class="topbar-inner">
     <div class="tb-left">
       <a class="brand" href="{% url 'index' %}" aria-label="SafeBook home">
-        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z" fill="#FFD27A"/><circle cx="16" cy="11" r="3.2" fill="#07545C"/><path d="M14.4 13h3.2l.9 5h-5z" fill="#07545C"/></svg>
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z" fill="#00E08A"/><circle cx="16" cy="11" r="3.2" fill="#050910"/><path d="M14.4 13h3.2l.9 5h-5z" fill="#050910"/></svg>
         <span class="brand-word">SafeBook</span>
       </a>
       {% if user.is_authenticated %}
