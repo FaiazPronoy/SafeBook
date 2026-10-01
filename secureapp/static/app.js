@@ -1,3 +1,4 @@
+/*! SafeBook. Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights reserved. See LICENSE. */
 /* SafeBook's page behaviour. Everything here is a convenience on top of pages
    that already work without it: the forms post, the links go, the dialogs
    are plain <dialog> elements. */

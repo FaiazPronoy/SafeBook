@@ -385,3 +385,13 @@ opens the public posts.
   attacker makes.
 - SQLite and the Django development server, neither of which belongs in
   production.
+
+## Authors
+
+Built by **Faiaz Abrar Zaman Pronoy** (lead developer) and **Sinthia Khandoker**.
+
+## Licence
+
+Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights
+reserved. You are welcome to read the code and run it to try it out, but not to
+copy it, hand it in as your own or publish it. See [LICENSE](LICENSE).

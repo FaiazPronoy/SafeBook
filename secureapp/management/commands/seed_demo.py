@@ -33,7 +33,7 @@ POSTS = [
      "Sunset from a rooftop in Lalbagh. Twelve floors of stairs, zero regrets. "
      "The fort looks like a painting from up here.",
      [("nusrat", "Which building? I want to go before the rains come back."),
-      ("tanvir", "The blue one behind the bakery. Bring water.")],
+      ("tanvir", "The blue one behind Moti Mia's bakery. Bring water.")],
      ["nusrat", "faiaz", "mim"]),
     ("faiaz", "friends", 6,
      "Finally moved my notes off the cloud drive I did not trust. Took a whole "
