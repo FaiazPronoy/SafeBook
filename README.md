@@ -10,6 +10,7 @@ you and your friends hold the keys.
 | **Course** | CSE447: Cryptography and Cryptanalysis, BRAC University |
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
+| **Versions** | [v1.0, the first version, and v2.0, the rebuild](../../releases) |
 
 ---
 
