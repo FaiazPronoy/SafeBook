@@ -109,6 +109,20 @@ python manage.py runserver
 
 ---
 
+## Settings
+
+Copy `.env.example` to `.env`. `python manage.py new_keys --write` fills in both keys for you. The `.env` file is never committed.
+
+| Variable | What it is |
+|---|---|
+| `SECRET_KEY` | Django's secret key |
+| `APP_KEK_BASE64` | The server key that locks public posts (32 random bytes, base64) |
+| `KEYMGMT_ACTIVE_KEK_ID` | Which server key is in use (`manage.py rotate_kek` updates it) |
+| `DEBUG` | `True` for local work only |
+| `ALLOWED_HOSTS` | Host names the site answers to |
+
+---
+
 ## Tests
 
 - `python manage.py test` runs **124 tests**
@@ -135,6 +149,7 @@ tools/                             browser checks
 ## Notes
 
 - This is not end-to-end encryption: a public post can be read by the server, on purpose.
+- This is a learning project. Its design has not been reviewed by an independent security auditor, so it should not be used where real security is needed.
 - Forgetting your password and losing the recovery code means the posts cannot be opened again. That is the cost of the server not holding your keys.
 
 ---
