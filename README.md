@@ -1,5 +1,7 @@
 # SafeBook
 
+[![Tests](https://github.com/FaiazPronoy/SafeBook/actions/workflows/tests.yml/badge.svg)](https://github.com/FaiazPronoy/SafeBook/actions/workflows/tests.yml)
+
 **A social network where the server cannot read your posts.**
 It works like the apps you know: friends, a news feed, posts, comments, likes
 and chat. The difference is that posts and messages are encrypted, and only
@@ -11,6 +13,10 @@ you and your friends hold the keys.
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
 | **Versions** | [v1.0, the first version, and v2.0, the rebuild](../../releases) |
+
+| | |
+|---|---|
+| ![Front page](docs/home.jpg) | ![News feed](docs/feed.jpg) |
 
 ---
 
