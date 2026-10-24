@@ -2,10 +2,10 @@
 
 [![Tests](https://github.com/FaiazPronoy/SafeBook/actions/workflows/tests.yml/badge.svg)](https://github.com/FaiazPronoy/SafeBook/actions/workflows/tests.yml)
 
-**A social network where the server cannot read your posts.**
+**A social network that keeps posts and chats encrypted, even in its own database.**
 It works like the apps you know: friends, a news feed, posts, comments, likes
-and chat. The difference is that posts and messages are encrypted, and only
-you and your friends hold the keys.
+and chat. The difference is that posts and messages are stored encrypted, with
+keys that only you and your friends can unlock.
 
 | | |
 |---|---|
@@ -13,6 +13,7 @@ you and your friends hold the keys.
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
 | **Versions** | [v1.0, the first version, and v2.0, the rebuild](../../releases) |
+| **History** | Built in Summer 2025 for the course. Rebuilt and published here in October 2026. |
 
 | | |
 |---|---|
@@ -99,7 +100,7 @@ hidden). Then sign in as Faiaz, accept Mim's request, and sign in as Mim again.
 
 You need **Python 3.10+**.
 
-- **Windows:** double-click `RUN-SafeBook.bat`. It opens <http://127.0.0.1:8010>.
+- **Windows:** double-click `RUN-SafeBook.bat`. It installs the packages, makes fresh keys, prepares the database and opens <http://127.0.0.1:8010>.
 - **By hand:**
 
 ```bash
@@ -132,7 +133,7 @@ Copy `.env.example` to `.env`. `python manage.py new_keys --write` fills in both
 ## Tests
 
 - `python manage.py test` runs **124 tests**
-- They prove the server cannot open friends-only posts, that keys move correctly when friends change, and that tampering is caught
+- They prove that the database and the server key alone cannot open friends-only posts, that keys move correctly when friends change, and that tampering is caught
 - `tools/browser_checks.py` opens every page and checks contrast in both themes and on a phone
 
 ---
@@ -154,16 +155,26 @@ tools/                             browser checks
 
 ## Notes
 
-- This is not end-to-end encryption: a public post can be read by the server, on purpose.
+- This is not end-to-end encryption. While you are signed in, the server uses your key to show you your posts, and it can read a public post on purpose. What it protects against is a stolen database, disk or `.env` file.
 - This is a learning project. Its design has not been reviewed by an independent security auditor, so it should not be used where real security is needed.
 - Forgetting your password and losing the recovery code means the posts cannot be opened again. That is the cost of the server not holding your keys.
 
 ---
 
-## Authors
+## Who built it
+
+Faiaz led the project and designed the encryption. He split the social side of
+the app with Sinthia and reviewed her work before it was merged.
 
 - **Faiaz Abrar Zaman Pronoy** (ফাইয়াজ আবরার জামান প্রনয়), lead developer
+  - The key design: a key per post, RSA copies for friends, scrypt for passwords
+  - The encryption code in `crypto.py`, `keys.py` and `keyring.py`, and the HMAC seals
+  - Posts and audiences, the recovery code and server key rotation
+  - The test suite that tries to read and tamper with the stored data
 - **Sinthia Khandoker** (সিনথিয়া খন্দকার)
+  - Friends and friend requests
+  - The chat and the profile pages
+  - Sign up, with the password strength meter
 
 ## Licence
 
