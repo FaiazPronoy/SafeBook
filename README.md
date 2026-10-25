@@ -39,6 +39,9 @@ keys that only you and your friends can unlock.
 - Your email and phone are stored encrypted
 - Sign in history in your settings
 
+**Crypto lab**
+- Five hands-on demos: ECB, CBC and GCM side by side, a reused nonce, a timing leak, how fast a stolen password list falls, and a one-bit tamper
+
 **Safety**
 - Two-step sign in, if you want it: after your password, a 6 digit code sent to your email
 - Password eye and a strength meter on sign up
@@ -151,6 +154,8 @@ Copy `.env.example` to `.env`. `python manage.py new_keys --write` fills in both
 secureapp/
   crypto.py, keys.py, keyring.py   encryption and key handling
   social.py, friends.py, chat.py   posts, friends and chat
+  views.py, two_step.py            sign up, sign in and two-step codes
+  lab.py                           the crypto lab demos
   templates/, static/              pages, CSS and JavaScript
   tests/                           the test suites
 safebook/                          Django settings
