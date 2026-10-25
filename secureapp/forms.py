@@ -44,6 +44,8 @@ class RegisterForm(forms.Form):
         if p1 and p2 and p1 != p2:
             self.add_error("password2", "The two passwords do not match.")
         elif p1:
+            # this password is also the key to the account's data, so a weak one
+            # is a weak lock and not just a weak login
             try:
                 validate_password(p1)
             except forms.ValidationError as exc:
@@ -77,6 +79,7 @@ class ConfirmPasswordForm(forms.Form):
 
 
 class ChangePasswordForm(forms.Form):
+    """Changing the password re-wraps the DEK. No note is re-encrypted."""
     current = forms.CharField(label="Current password", widget=_pw("current password", "current-password"))
     new1 = forms.CharField(label="New password", widget=_pw("new password", "new-password"))
     new2 = forms.CharField(label="Confirm new password", widget=_pw("again", "new-password"))

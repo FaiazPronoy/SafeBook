@@ -23,6 +23,8 @@ class Command(BaseCommand):
         if options["write"]:
             path = settings.BASE_DIR / ".env"
             text = path.read_text(encoding="utf-8") if path.exists() else ""
+            # a real KEK already in .env opens every public post; replacing it
+            # by accident would lock them all, so this only fills placeholders
             if PLACEHOLDER not in text:
                 raise CommandError(".env already has keys. Use rotate_kek to change the KEK.")
             lines = []

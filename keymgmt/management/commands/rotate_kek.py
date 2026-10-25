@@ -1,3 +1,14 @@
+"""Replace the server KEK without re-encrypting a single post.
+
+Each public post carries its content key wrapped under the KEK. Rotating
+means unwrapping that 32 byte key with the old KEK and wrapping it again
+with the new one. The post's own ciphertext is never read and never
+rewritten, which is the reason for wrapping keys inside keys in the first
+place.
+
+Only-me and friends posts hold no server-wrapped key at all, so there is
+nothing here for the server to rotate - and nothing for it to read either.
+"""
 import base64
 
 from django.core.management.base import BaseCommand, CommandError

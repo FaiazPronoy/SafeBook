@@ -1,6 +1,7 @@
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 
+# Generate a 2048-bit RSA keypair
 def generate_rsa_keypair():
     priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     pub = priv.public_key()
@@ -12,7 +13,7 @@ def generate_rsa_keypair():
         encoding=serialization.Encoding.DER,
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption(),
-    )
+    )  # we'll encrypt this bytes ourselves with AES-GCM
     return pub_pem, priv_pkcs8
 
 def load_public_key_from_pem(pem: bytes):
@@ -21,6 +22,7 @@ def load_public_key_from_pem(pem: bytes):
 def load_private_key_from_der(der_bytes: bytes):
     return serialization.load_der_private_key(der_bytes, password=None)
 
+# RSA-OAEP wrap/unwrap for the session key
 def rsa_wrap_session_key(public_key, session_key: bytes) -> bytes:
     return public_key.encrypt(
         session_key,

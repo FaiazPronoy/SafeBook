@@ -1,3 +1,10 @@
+"""Signing up, signing in, and the account page.
+
+Every view that touches user data needs the private DEK, and the private
+DEK only exists while someone is logged in. There is no path through this
+app where the server reads a private post, a friends post or a message on
+its own. The posts and the chat live in social.py and chat.py.
+"""
 import functools
 
 from django.contrib import messages as flash
@@ -46,7 +53,14 @@ def _finish_login(request, user, dek: bytes, target: str):
     return response
 
 
+# ---------------------------------------------------------------- plumbing
 def needs_key(view):
+    """Hand the view a Keyring, or send the user back to the login page.
+
+    The DEK goes missing for ordinary reasons - the cookie half expired, the
+    server restarted, the session was opened before a password change - and
+    none of them are worth an error page.
+    """
     @functools.wraps(view)
     @login_required
     def wrapper(request, *args, **kwargs):
@@ -58,6 +72,7 @@ def needs_key(view):
     return wrapper
 
 
+# ---------------------------------------------------------------- auth
 def register_view(request):
     if request.user.is_authenticated:
         return redirect("index")
@@ -74,6 +89,8 @@ def register_view(request):
             )
             dek = new_key()
 
+            # the same key, sealed twice: once by the password, once by the
+            # code the user is about to be shown
             user.pdek_salt, user.pdek_wrapped = keys.seal_private_dek(dek, password)
             user.rec_salt, user.rec_wrapped = keys.seal_recovery_dek(dek, normalise(code))
 
@@ -87,6 +104,7 @@ def register_view(request):
             user.privkey_nonce, user.privkey_ct = aead_encrypt(dek, priv_der, AAD_PRIVKEY)
             user.save()
 
+        # shown once, on the next page, and never stored in a readable form
         request.session["fresh_recovery_code"] = code
         request.session["fresh_recovery_user"] = user.username
         return redirect("recovery_code")
@@ -119,6 +137,7 @@ def login_view(request):
         if user is None:
             record_attempt(request, username, False)
             left = MAX_FAILURES - recent_failures(username)
+            # the same sentence whether the account exists or not
             flash.error(request, "Wrong username or password."
                                  + (f" {left} attempts left." if left <= 2 else ""))
             return render(request, "registration/login.html", {"form": form, "demo": demo_people(Account)})
@@ -126,6 +145,8 @@ def login_view(request):
         try:
             dek = keys.open_private_dek(user.pdek_wrapped, user.pdek_salt, password)
         except Exception:
+            # the password matched the hash but the envelope did not open, so
+            # the two are out of step with each other
             record_attempt(request, username, False)
             flash.error(request, "Something is wrong with this account's key. "
                                  "Use your recovery code to set a new password.")
@@ -183,6 +204,7 @@ def login_verify_view(request):
 
 @require_POST
 def logout_view(request):
+    """POST only, so a link on another site cannot sign someone out."""
     idle = request.POST.get("reason") == "idle"
     django_logout(request)
     response = redirect("login")
@@ -193,6 +215,8 @@ def logout_view(request):
 
 
 def recover_view(request):
+    """Open the account with the recovery code and re-seal it under a new
+    password. The DEK itself never changes, so nothing is re-encrypted."""
     form = RecoverForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         username = form.cleaned_data["username"].strip()
@@ -216,6 +240,7 @@ def recover_view(request):
         with transaction.atomic():
             user.set_password(new_password)
             user.pdek_salt, user.pdek_wrapped = keys.seal_private_dek(dek, new_password)
+            # the used code is spent; issue a new one in the same breath
             user.rec_salt, user.rec_wrapped = keys.seal_recovery_dek(dek, normalise(fresh_code))
             user.rec_used_at = timezone.now()
             user.save()
@@ -228,6 +253,7 @@ def recover_view(request):
     return render(request, "recover.html", {"form": form})
 
 
+# ---------------------------------------------------------------- account
 @needs_key
 def account_view(request, ring):
     user, dek = request.user, ring.dek
@@ -255,6 +281,7 @@ def account_view(request, ring):
 @login_required
 @require_POST
 def profile_edit_view(request):
+    """Name and bio are public by design, so they are stored as plain text."""
     form = ProfileForm(request.POST)
     if form.is_valid():
         request.user.display_name = form.cleaned_data["name"].strip()
@@ -284,6 +311,7 @@ def change_password_view(request, ring):
     new_password = form.cleaned_data["new1"]
     with transaction.atomic():
         user.set_password(new_password)
+        # only the envelope is rewritten. Not one post is touched.
         user.pdek_salt, user.pdek_wrapped = keys.seal_private_dek(ring.dek, new_password)
         user.save()
 

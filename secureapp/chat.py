@@ -1,3 +1,5 @@
+"""Chat. Every message is sealed for the two people in the conversation and
+nobody else, the server included."""
 from django.contrib import messages as flash
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -13,6 +15,8 @@ Account = get_user_model()
 
 
 def _conversations(ring):
+    """Everyone this person has chatted with, newest first, plus friends
+    they have not written to yet so there is someone to start with."""
     me = ring.user
     latest = {}
     for m in (Message.objects.filter(Q(sender=me) | Q(recipient=me))

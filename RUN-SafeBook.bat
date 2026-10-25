@@ -8,6 +8,8 @@ echo   SAFEBOOK
 echo ==========================================
 echo.
 
+REM  1. A Python the pinned packages install on. "py" finds a python.org
+REM     install first, which is what we want.
 set "PY="
 for %%V in (3.12 3.11 3.13) do (
   if not defined PY (
@@ -43,6 +45,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
+REM  2. Keys. A new .env gets a fresh SECRET_KEY and server key; an existing
+REM     one is left exactly as it is, because its key opens the public posts.
 if not exist ".env" (
   echo [3/5] Writing .env with fresh keys ...
   copy /y ".env.example" ".env" >nul
