@@ -9,12 +9,17 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("register/recovery-code/", views.recovery_code_view, name="recovery_code"),
     path("login/", views.login_view, name="login"),
+    path("login/verify/", views.login_verify_view, name="login_verify"),
     path("logout/", views.logout_view, name="logout"),
     path("recover/", views.recover_view, name="recover"),
 
     path("account/", views.account_view, name="account"),
     path("account/profile/", views.profile_edit_view, name="profile_edit"),
     path("account/password/", views.change_password_view, name="change_password"),
+    path("account/two-step/start/", views.two_step_start_view, name="two_step_start"),
+    path("account/two-step/confirm/", views.two_step_confirm_view, name="two_step_confirm"),
+    path("account/two-step/cancel/", views.two_step_cancel_view, name="two_step_cancel"),
+    path("account/two-step/off/", views.two_step_off_view, name="two_step_off"),
 
     path("posts/new/", social.post_new_view, name="post_new"),
     path("posts/<int:post_id>/", social.post_detail_view, name="post_detail"),

@@ -66,6 +66,45 @@
     </div>
   </section>
 
+  <section class="card col-12" id="two-step">
+    <div class="card-head">
+      <h2>{% icon "mail" %} Two-step sign in</h2>
+      {% if user.two_step %}<span class="badge verified">On</span>{% else %}<span class="badge plain">Off</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if user.two_step %}
+        <p class="small muted">Each sign in asks for your password and then a 6 digit code sent to
+          {{ email }}. To turn it off, confirm your password.</p>
+        <form method="post" action="{% url 'two_step_off' %}" novalidate>
+          {% csrf_token %}
+          {% include "_form.html" with form=password_form %}
+          <button class="btn-soft" type="submit">Turn off</button>
+        </form>
+      {% elif setup_pending %}
+        <p class="small muted">Enter the code we just sent to {{ email }} to finish turning it on.</p>
+        <form method="post" action="{% url 'two_step_confirm' %}" novalidate>
+          {% csrf_token %}
+          {% include "_form.html" with form=code_form %}
+          <div class="actions">
+            <button class="btn" type="submit">Turn on</button>
+            <button class="btn-ghost" type="submit" formaction="{% url 'two_step_cancel' %}">Cancel</button>
+          </div>
+        </form>
+      {% elif is_demo %}
+        <p class="small muted">Demo accounts keep this off so everyone can still sign in to them.
+          Make your own account to try it.</p>
+      {% else %}
+        <p class="small muted">Add a second step to signing in: after your password, SafeBook emails
+          a 6 digit code to {{ email|default:"your email" }}. Someone who learns your password still
+          cannot get in without your inbox.</p>
+        <form method="post" action="{% url 'two_step_start' %}">
+          {% csrf_token %}
+          <button class="btn" type="submit">Turn on</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+
   <section class="card col-12">
     <div class="card-head">
       <h2>Recent sign-ins</h2>

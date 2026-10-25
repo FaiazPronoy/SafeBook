@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load sb %}
+{% block title %}Enter your code · SafeBook{% endblock %}
+{% block content %}
+<div class="auth-one">
+  <section class="card auth-card">
+    <div class="card-body">
+      <h1>Check your email</h1>
+      <p class="muted small">Two-step sign in is on for this account. We sent a 6 digit code to
+        <b>{{ email }}</b>. It works once and expires in 10 minutes.</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "_form.html" %}
+        <button class="btn block big" type="submit">Sign in</button>
+      </form>
+
+      <form method="post" class="actions resend">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="resend">
+        <button class="btn-ghost" type="submit">{% icon "mail" %} Send a new code</button>
+        <a class="small" href="{% url 'login' %}">Start again</a>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

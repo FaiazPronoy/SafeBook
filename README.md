@@ -40,6 +40,7 @@ keys that only you and your friends can unlock.
 - Sign in history in your settings
 
 **Safety**
+- Two-step sign in, if you want it: after your password, a 6 digit code sent to your email
 - Password eye and a strength meter on sign up
 - Locks itself after 15 minutes of no activity
 - A recovery code, shown once, to get back in if you forget your password
@@ -92,6 +93,9 @@ The front page shows the demo people as cards. Pick one to sign in as them.
 | Tanvir Hasan | `tanvir` | `Tanvir#2026safe` |
 | Sadia Mim | `mim` | `Mim#2026safe` |
 
+Two-step sign in stays off on the demo accounts, so they always open. Make your own
+account to try it.
+
 Try this: sign in as Mim and open Faiaz's profile (his friends-only posts are
 hidden). Then sign in as Faiaz, accept Mim's request, and sign in as Mim again.
 
@@ -128,13 +132,15 @@ Copy `.env.example` to `.env`. `python manage.py new_keys --write` fills in both
 | `KEYMGMT_ACTIVE_KEK_ID` | Which server key is in use (`manage.py rotate_kek` updates it) |
 | `DEBUG` | `True` for local work only |
 | `ALLOWED_HOSTS` | Host names the site answers to |
+| `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` | Optional. The Gmail address and app password that send two-step codes. Left empty, codes are printed in the terminal. |
 
 ---
 
 ## Tests
 
-- `python manage.py test` runs **124 tests**
+- `python manage.py test` runs **136 tests**
 - They prove that the database and the server key alone cannot open friends-only posts, that keys move correctly when friends change, and that tampering is caught
+- Two-step sign in is tested end to end: wrong, reused and expired codes are refused
 - `tools/browser_checks.py` opens every page and checks contrast in both themes and on a phone
 
 ---

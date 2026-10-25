@@ -59,6 +59,23 @@ class LoginForm(forms.Form):
     password = forms.CharField(label="Password", widget=_pw("your password", "current-password"))
 
 
+class CodeForm(forms.Form):
+    code = forms.CharField(label="6 digit code", min_length=6, max_length=6,
+                           widget=forms.TextInput(attrs={"class": "input code", "placeholder": "000000",
+                                                         "inputmode": "numeric", "autocomplete": "one-time-code",
+                                                         "pattern": "[0-9]{6}", "autofocus": "autofocus"}))
+
+    def clean_code(self):
+        code = self.cleaned_data["code"].strip()
+        if not code.isdigit():
+            raise forms.ValidationError("The code is 6 digits.")
+        return code
+
+
+class ConfirmPasswordForm(forms.Form):
+    password = forms.CharField(label="Your password", widget=_pw("your password", "current-password"))
+
+
 class ChangePasswordForm(forms.Form):
     current = forms.CharField(label="Current password", widget=_pw("current password", "current-password"))
     new1 = forms.CharField(label="New password", widget=_pw("new password", "new-password"))

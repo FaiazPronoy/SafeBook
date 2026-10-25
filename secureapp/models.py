@@ -25,6 +25,8 @@ class Account(AbstractUser):
     display_name = models.CharField(max_length=60, blank=True)
     bio = models.CharField(max_length=160, blank=True)
 
+    two_step = models.BooleanField(default=False)
+
     @property
     def name(self) -> str:
         return self.display_name or self.username
