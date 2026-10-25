@@ -1,11 +1,3 @@
-"""Fill an empty database with enough to look at.
-
-Every account here is built through the same code path as a real
-registration, and every post, comment and message is sealed by the same
-functions the views use, so the seeded rows are encrypted exactly like
-anyone else's. There is no back door that writes plaintext.
-"""
-
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -27,7 +19,6 @@ Account = get_user_model()
 FRIENDS = [("nusrat", "faiaz"), ("tanvir", "nusrat"), ("nusrat", "mim"), ("faiaz", "tanvir")]
 PENDING = [("mim", "faiaz")]
 
-# author, audience, hours ago, text, [(commenter, text)], [likers]
 POSTS = [
     ("tanvir", "public", 3,
      "Sunset from a rooftop in Lalbagh. Twelve floors of stairs, zero regrets. "
@@ -66,7 +57,6 @@ POSTS = [
      ["faiaz", "nusrat"]),
 ]
 
-# sender, recipient, minutes ago, text
 CHATS = [
     ("faiaz", "nusrat", 300, "Before I send the draft: read your safety number back to me?"),
     ("nusrat", "faiaz", 296, "Checked on the phone. Both ends match."),
@@ -90,8 +80,6 @@ class Command(BaseCommand):
         names = [p[0] for p in PEOPLE]
         present = Account.objects.filter(username__in=names).count()
         if present and present < len(names) and not options["reset"]:
-            # an older demo set, from before friends existed: only the demo
-            # accounts are touched, never anyone else's
             self.stdout.write("An older set of demo accounts is here; rebuilding them.")
             options["reset"] = True
         if options["reset"]:
@@ -152,7 +140,6 @@ class Command(BaseCommand):
             seal_message(message, text)
             message.save()
             at = now - timedelta(minutes=minutes)
-            # everything but the last word in each chat has been read
             Message.objects.filter(id=message.id).update(
                 created_at=at, read_at=at + timedelta(minutes=1) if minutes > 40 else None)
 

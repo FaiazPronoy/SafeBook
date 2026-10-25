@@ -1,9 +1,3 @@
-"""The admin exists here to make one point: what the database actually holds.
-
-Every encrypted column is shown as hex and nothing is shown as plaintext,
-because from the server's side of the fence that is genuinely all there is.
-"""
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
@@ -26,8 +20,6 @@ def _mono(value, limit=None):
 
 
 class CipherColumn:
-    """Small helper so each ciphertext column reads the same way in the admin."""
-
     @staticmethod
     def make(field, label, limit=None):
         def show(self, obj):

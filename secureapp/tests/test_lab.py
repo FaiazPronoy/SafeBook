@@ -1,5 +1,3 @@
-"""The lab pages make claims with numbers on them. These check the claims."""
-
 import os
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -16,7 +14,6 @@ class BlockModeTests(TestCase):
         self.client = sign_in("alice")
 
     def test_ecb_keeps_the_repeated_blocks_and_the_others_do_not(self):
-        """This is the whole lesson of the page, so it is worth asserting."""
         plain = _padlock()
         key = os.urandom(32)
 
@@ -71,9 +68,9 @@ class TamperLabTests(TestCase):
     def test_a_flipped_byte_fails_both_checks(self):
         response = self.client.post("/lab/tamper/", {"text": "the vault code is 4417", "byte": "3"})
         steps = response.context["steps"]
-        self.assertFalse(steps[0]["ok"])          # the row MAC
-        self.assertFalse(steps[1]["ok"])          # the GCM tag
-        self.assertTrue(steps[2]["ok"])           # the untouched row still verifies
+        self.assertFalse(steps[0]["ok"])
+        self.assertFalse(steps[1]["ok"])
+        self.assertTrue(steps[2]["ok"])
 
     def test_a_byte_index_past_the_end_wraps_instead_of_crashing(self):
         self.assertEqual(self.client.post("/lab/tamper/", {"byte": "99999"}).status_code, 200)
@@ -99,8 +96,6 @@ class TimingLabTests(TestCase):
         self.client = sign_in("alice")
 
     def test_the_hand_written_loop_leaks_and_compare_digest_does_not(self):
-        """The loop should climb with the number of correct bytes; the
-        constant time comparison should not climb anything like as much."""
         rows = self.client.get("/lab/timing/").context["rows"]
         first, last = rows[0], rows[-1]
 

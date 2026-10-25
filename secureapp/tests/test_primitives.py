@@ -1,7 +1,3 @@
-"""The crypto layer on its own, with no database and no views."""
-
-import os
-
 from django.test import SimpleTestCase
 
 from secureapp.crypto import aead_decrypt, aead_encrypt, new_key, unwrap_key, wrap_key
@@ -17,7 +13,6 @@ class AeadTests(SimpleTestCase):
         self.assertEqual(aead_decrypt(key, nonce, ct, b"col.a"), b"hello")
 
     def test_a_different_column_will_not_open_it(self):
-        """A ciphertext moved from one column to another must stop decrypting."""
         key = new_key()
         nonce, ct = aead_encrypt(key, b"hello", b"post.body")
         with self.assertRaises(Exception):
@@ -56,7 +51,6 @@ class MacTests(SimpleTestCase):
         self.assertTrue(mac_ok(tag, self.key, CTX_POST, b"7", b"nonce", b"ct"))
 
     def test_a_post_mac_does_not_verify_as_a_message_mac(self):
-        """The HKDF context keeps the two tables from sharing a key."""
         tag = row_mac(self.key, CTX_POST, b"7", b"nonce", b"ct")
         self.assertFalse(mac_ok(tag, self.key, CTX_MESSAGE, b"7", b"nonce", b"ct"))
 
@@ -65,7 +59,6 @@ class MacTests(SimpleTestCase):
         self.assertFalse(mac_ok(tag, self.key, CTX_POST, b"8", b"nonce", b"ct"))
 
     def test_fields_cannot_be_regrouped(self):
-        """Length prefixing stops ("ab","c") colliding with ("a","bc")."""
         tag = row_mac(self.key, CTX_POST, b"ab", b"c")
         self.assertFalse(mac_ok(tag, self.key, CTX_POST, b"a", b"bc"))
 
@@ -84,7 +77,6 @@ class PasswordKeyTests(SimpleTestCase):
                          derive_wrapping_key("hunter2", salt))
 
     def test_a_different_salt_gives_a_different_key(self):
-        """Two people with the same password must not share a key."""
         self.assertNotEqual(derive_wrapping_key("hunter2", new_salt()),
                             derive_wrapping_key("hunter2", new_salt()))
 

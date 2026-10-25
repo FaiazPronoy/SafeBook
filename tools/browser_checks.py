@@ -1,24 +1,4 @@
 #!/usr/bin/env python3
-"""
-Browser checks for SafeBook, in a real browser through Playwright.
-
-  1. pages     every page, signed out and signed in, answers 200 with no
-               console error
-  2. contrast  every piece of text against WCAG AA, light and dark
-  3. phone     nothing scrolls sideways at 390 px
-  4. flows     a demo card signs you in, the password eye works, a post
-               can be written, liked, commented on and deleted, a chat
-               message arrives, and signing out locks the account
-
-Start the site first on a database filled by seed_demo:
-
-  python manage.py seed_demo
-  python manage.py runserver 127.0.0.1:8010
-  python tools/browser_checks.py
-
-Uses the Edge that ships with Windows; set SB_BROWSER=chrome for Chrome.
-Screenshots go to tools/shots (ignored by git).
-"""
 import os
 import sys
 
@@ -53,7 +33,6 @@ CONTRAST_JS = r"""
                                  g: top.g * top.a + under.g * (1 - top.a),
                                  b: top.b * top.a + under.b * (1 - top.a), a: 1});
   const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
-  // a gradient counts as its lightest stop, the worst case for light text on it
   const stops = img => [...img.matchAll(/(?:rgba?|hsla?)\([^)]+\)/g)].map(m => parse(m[0])).filter(c => c && c.a >= .9);
   const background = el => {
     const stack = [];
@@ -80,7 +59,6 @@ CONTRAST_JS = r"""
     if (el.closest('[aria-hidden="true"], .sr-only, [hidden], option, script, style, dialog:not([open]), .redact')) continue;
     const size = parseFloat(cs.fontSize), weight = parseInt(cs.fontWeight, 10);
     const need = (size >= 24 || (size >= 18.66 && weight >= 700)) ? 3 : 4.5;
-    // gradient text: every colour in the gradient has to pass on its own
     const clipped = (cs.backgroundClip || cs.webkitBackgroundClip || '').includes('text');
     const bg = background(clipped ? el.parentElement : el);
     let r;
@@ -102,7 +80,6 @@ CONTRAST_JS = r"""
 
 
 def open_demo(page):
-    """The first card is Nusrat, who is friends with everyone."""
     page.goto(BASE + "/login/")
     page.locator(".demo-card").first.click()
     page.wait_for_load_state("networkidle")
@@ -116,7 +93,6 @@ def main():
         for theme in ("light", "dark"):
             print("\n=== %s ===" % theme)
             ctx = browser.new_context(viewport={"width": 1366, "height": 900}, color_scheme=theme)
-            # dark is the default whatever the system says, so pick the theme outright
             ctx.add_init_script("try { localStorage.setItem('safebook-theme', '%s') } catch (e) {}" % theme)
             page = ctx.new_page()
             errors, statuses, fails, total = [], [], [], 0

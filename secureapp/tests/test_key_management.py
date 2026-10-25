@@ -1,8 +1,3 @@
-"""Changing a password, using a recovery code, rotating the server key.
-
-All three are the same idea: rewrite an envelope, leave the data alone.
-"""
-
 import base64
 import os
 import tempfile
@@ -174,8 +169,6 @@ class KekRotationTests(TestCase):
 
 
 class NewKeysTests(TestCase):
-    """new_keys --write fills a fresh .env, and never a finished one."""
-
     def run_in(self, folder):
         with override_settings(BASE_DIR=folder):
             call_command("new_keys", "--write", stdout=StringIO())

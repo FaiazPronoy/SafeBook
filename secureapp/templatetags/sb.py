@@ -1,5 +1,3 @@
-"""Small template helpers: inline icons and the people's avatars."""
-
 from django import template
 from django.urls import reverse
 from django.utils.html import format_html
@@ -7,7 +5,6 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-# 24x24 strokes, drawn to sit on the text baseline at 1.15em
 ICONS = {
     "edit": '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
     "home": '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
@@ -43,7 +40,6 @@ ICONS = {
 
 @register.simple_tag
 def icon(name, label=""):
-    """An inline SVG. Decorative unless it is given a label."""
     aria = format_html('role="img" aria-label="{}"', label) if label else mark_safe('aria-hidden="true"')
     return format_html(
         '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
@@ -52,7 +48,6 @@ def icon(name, label=""):
 
 @register.simple_tag
 def avatar(person, size="", link=True):
-    """A round badge with a person's initials, in a colour of their own."""
     classes = "av " + size if size else "av"
     if link:
         return format_html('<a class="{}" href="{}" style="--h:{}" aria-label="{}">{}</a>',
@@ -69,7 +64,6 @@ def first_name(person):
 
 @register.filter
 def short_ago(when):
-    """5m, 3h, 2d: the chat list has no room for a sentence."""
     from django.utils import timezone
     seconds = (timezone.now() - when).total_seconds()
     if seconds < 3600:
@@ -83,6 +77,5 @@ def short_ago(when):
 
 @register.filter
 def ago(when):
-    """"20 hours ago", not "20 hours, 1 minute ago"."""
     from django.utils.timesince import timesince
     return timesince(when, depth=1) + " ago"

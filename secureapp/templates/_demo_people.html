@@ -1,7 +1,3 @@
-{% comment %}
-The demo accounts as cards. Each card is its own small sign in form, so
-picking one works without any script at all.
-{% endcomment %}
 <div class="demo-people">
   {% for d in demo %}
     <form method="post" action="{% url 'login' %}">

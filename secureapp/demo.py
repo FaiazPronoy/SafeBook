@@ -1,13 +1,4 @@
-"""The demo accounts, in one place.
-
-seed_demo builds them and the sign in page offers them as cards, so a
-visitor can look around without making an account. Their passwords are in
-the README too; these are throwaway accounts on a demo database, never real
-ones.
-"""
-
 PEOPLE = [
-    # username, password, name, email, phone, bio
     ("nusrat", "Nusrat#2026safe", "Nusrat Jahan", "nusrat@safebook.test", "01711000001",
      "CSE at BRACU. Tea, trains, and reading the fine print."),
     ("faiaz", "Faiaz#2026safe", "Faiaz Rahman", "faiaz@safebook.test", "01711000002",
@@ -18,7 +9,6 @@ PEOPLE = [
      "Design student. Will judge your font."),
 ]
 
-# what each person shows a visitor, on the card that signs in as them
 ABOUT = {
     "nusrat": "Friends with everyone here. Has a post only she can read.",
     "faiaz": "Posts to friends. Waiting on a friend request from Mim.",
@@ -28,7 +18,6 @@ ABOUT = {
 
 
 def demo_people(accounts):
-    """The demo people who exist in this database, ready for the cards."""
     present = {a.username: a for a in accounts.objects.filter(username__in=[p[0] for p in PEOPLE])}
     return [{"username": u, "password": pw, "name": name, "first": name.split()[0], "about": ABOUT[u],
              "initials": present[u].initials, "hue": present[u].hue}

@@ -1,15 +1,3 @@
-"""From a private notebook to a social network.
-
-Posts lose their title and gain an audience; friends, shared post keys,
-comments and likes arrive; messages become chat, so they lose their subject
-and anonymous sending.
-
-Existing posts are deleted rather than carried over. Their row seal covers
-the title columns that are going away, and re-sealing needs the post key,
-which only the author's password opens. A migration holds nobody's password,
-so an old post could only survive as a row that fails its check forever.
-"""
-
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
@@ -17,7 +5,6 @@ from django.db import migrations, models
 
 def drop_old_rows(apps, schema_editor):
     apps.get_model("secureapp", "Post").objects.all().delete()
-    # messages lose their subject the same way, so their seal breaks too
     apps.get_model("secureapp", "Message").objects.all().delete()
 
 

@@ -1,6 +1,3 @@
-"""Signing in: what it costs, what it tells you, and when it stops."""
-
-import statistics
 import time
 
 from django.contrib.auth import get_user_model
@@ -40,15 +37,6 @@ class CredentialTests(TestCase):
         self.assertIsNone(check_credentials("nobody", PASSWORD))
 
     def test_an_unknown_username_costs_the_same_as_a_wrong_password(self):
-        """Returning early for a missing user is how account lists get built.
-
-        The hash has to run either way, so the two paths take the same time.
-        The fastest of several runs is the estimator here: it is the one the
-        machine being busy can only push upwards, never down. The bound is
-        loose on purpose - the regression this guards against was 191x, so
-        catching it does not need a tight threshold, and a tight one would
-        just fail on a laptop that is doing something else.
-        """
         def fastest_ms(username):
             samples = []
             for _ in range(7):
@@ -91,7 +79,6 @@ class LockoutTests(TestCase):
         self.assertFalse(is_locked_out("alice"))
 
     def test_the_wording_is_the_same_for_a_real_and_a_made_up_username(self):
-        """Different wording is the same leak as different timing."""
         def message_for(username):
             response = self.client.post(
                 "/login/", {"username": username, "password": "Wrong#Password2026"})
@@ -113,7 +100,6 @@ class LogoutTests(TestCase):
         self.client.post("/login/", {"username": "alice", "password": PASSWORD})
 
     def test_logout_needs_a_post(self):
-        """A GET logout can be triggered by an image tag on someone else's page."""
         self.assertEqual(self.client.get("/logout/").status_code, 405)
 
     def test_logout_clears_the_key_from_the_session(self):
@@ -122,16 +108,12 @@ class LogoutTests(TestCase):
         self.assertNotIn(SESSION_FIELD, self.client.session)
 
     def test_an_idle_lock_says_why_it_happened(self):
-        """The page signs out by itself after fifteen idle minutes; the sign in
-        page then has to explain the sudden logout, not just say signed out."""
         page = self.client.post("/logout/", {"reason": "idle"}, follow=True)
         self.assertContains(page, "Locked after 15 minutes")
         self.assertNotIn("_auth_user_id", self.client.session)
 
 
 class DemoFileTests(TestCase):
-    """The sign in page offers the demo accounts only where they exist."""
-
     def test_no_demo_files_on_an_empty_database(self):
         self.assertEqual(Client().get("/login/").context["demo"], [])
 

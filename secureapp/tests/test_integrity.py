@@ -1,6 +1,3 @@
-"""A row that has been altered must not be shown. Not shown with a warning
-beside it - not shown."""
-
 from django.test import TestCase
 
 from secureapp.models import Comment, Message, Post
@@ -47,7 +44,6 @@ class TamperedPostTests(TestCase):
                                "salary is 90000")
 
     def test_a_row_swapped_onto_another_owner_does_not_verify(self):
-        """The MAC covers the owner id, so a row cannot be re-homed."""
         bob, _, _ = full_account("bob")
         self.post.user = bob
         self.post.save()
@@ -73,7 +69,6 @@ class TamperedCommentTests(TestCase):
         self.assertContains(response, "failed its check")
 
     def test_a_comment_moved_under_another_post_does_not_verify(self):
-        """The MAC names the post, so a comment cannot be lifted elsewhere."""
         self.client.post("/posts/new/", {"body": "another post", "audience": "public"})
         other = Post.objects.exclude(id=self.post.id).get()
         self.comment.post = other
@@ -108,7 +103,6 @@ class TamperedMessageTests(TestCase):
         self.assertContains(sign_in("alice").get("/messages/bob/"), "the door code is 8890")
 
     def test_the_two_copies_of_the_key_are_different_blobs(self):
-        """One is locked for bob, the other for alice. Neither is the key."""
         self.assertNotEqual(bytes(self.message.key_for_recipient), bytes(self.message.key_for_sender))
         self.assertNotIn(b"8890", bytes(self.message.body_ct))
 

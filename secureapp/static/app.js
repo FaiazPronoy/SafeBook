@@ -1,7 +1,3 @@
-/*! SafeBook. Copyright 2026 Faiaz Abrar Zaman Pronoy and Sinthia Khandoker. All rights reserved. See LICENSE. */
-/* SafeBook's page behaviour. Everything here is a convenience on top of pages
-   that already work without it: the forms post, the links go, the dialogs
-   are plain <dialog> elements. */
 (function () {
   "use strict";
 
@@ -11,7 +7,6 @@
   var EYE_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17.9 17.9A10.8 10.8 0 0 1 12 19C5 19 1 12 1 12a19.8 19.8 0 0 1 5.1-5.9M9.9 5.2A10 10 0 0 1 12 5c7 0 11 7 11 7a19.9 19.9 0 0 1-2.9 4.1M1 1l22 22"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/></svg>';
   var COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
 
-  /* ---------------------------------------------------------- theme */
   var themeButton = document.getElementById("theme");
   if (themeButton) {
     var label = function () {
@@ -28,7 +23,6 @@
     });
   }
 
-  /* ---------------------------------------------------------- explainers and flashes */
   document.addEventListener("click", function (event) {
     var opener = event.target.closest("[data-explain]");
     if (opener) {
@@ -50,7 +44,6 @@
     });
   });
 
-  /* ---------------------------------------------------------- an eye on every password */
   document.querySelectorAll('input[type="password"]').forEach(function (input) {
     var wrap = document.createElement("span");
     wrap.className = "pw-wrap";
@@ -73,7 +66,6 @@
     wrap.appendChild(eye);
   });
 
-  /* ---------------------------------------------------------- copy a safety number */
   document.querySelectorAll(".fingerprint").forEach(function (box) {
     if (!navigator.clipboard) return;
     var button = document.createElement("button");
@@ -89,7 +81,6 @@
     box.insertAdjacentElement("afterend", button);
   });
 
-  /* ---------------------------------------------------------- only one menu open at a time */
   document.addEventListener("click", function (event) {
     document.querySelectorAll("details.menu[open]").forEach(function (menu) {
       if (!menu.contains(event.target)) menu.removeAttribute("open");
@@ -103,7 +94,6 @@
     });
   });
 
-  /* ---------------------------------------------------------- the composer says who gets a key */
   var hint = document.querySelector("[data-aud-hint]");
   if (hint) {
     document.querySelectorAll('.aud-pick input[name="audience"]').forEach(function (radio) {
@@ -111,7 +101,6 @@
     });
   }
 
-  /* ---------------------------------------------------------- like without leaving the page */
   document.querySelectorAll("form[data-like]").forEach(function (form) {
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -134,7 +123,6 @@
     });
   });
 
-  /* ---------------------------------------------------------- chat: newest at the bottom, Enter sends */
   var bubbles = document.getElementById("bubbles");
   if (bubbles) bubbles.scrollTop = bubbles.scrollHeight;
   document.querySelectorAll(".composer-line textarea, .composer textarea").forEach(function (area) {
@@ -153,16 +141,10 @@
     }
   });
 
-  /* ---------------------------------------------------------- how long a password would last
-     A rough count of the guesses it would take, against the scrypt setting
-     SafeBook uses: about four guesses a second on one core, so a thousand
-     machines working at once is four thousand. Rough, but it points the
-     right way, which is all a meter can do. */
   var meter = document.querySelector("[data-strength-for]");
   if (meter) {
     var target = document.getElementById(meter.getAttribute("data-strength-for"));
     var text = meter.querySelector(".strength-text");
-    // sit under the password it is measuring, and only show up with script on
     target.closest(".field").appendChild(meter);
     meter.hidden = false;
     var human = function (seconds) {
@@ -192,10 +174,6 @@
     judge();
   }
 
-  /* ---------------------------------------------------------- lock after fifteen idle minutes
-     While you are signed in your key is open in this session, so a tab
-     left open on a shared computer is the weak point. After fifteen minutes
-     without a key press, click or scroll, SafeBook signs out by itself. */
   var signOut = document.getElementById("signOut");
   if (signOut) {
     var IDLE = 15 * 60 * 1000;

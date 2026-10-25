@@ -1,11 +1,3 @@
-"""The feed, posts, comments, likes, profiles and friends.
-
-Who can read a post is decided by who holds a copy of its key, not by an
-if statement in a view. The checks here still refuse early and politely,
-but if one of them were missing, the person would get ciphertext they have
-no key for.
-"""
-
 from django.contrib import messages as flash
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Prefetch, Q
@@ -30,7 +22,6 @@ FEED_SIZE = 40
 
 
 def _back(request, fallback="index", **kwargs):
-    """Return to the page the button was pressed on, if it was one of ours."""
     target = request.POST.get("next", "")
     if target and url_has_allowed_host_and_scheme(target, {request.get_host()}):
         return redirect(target)
@@ -38,8 +29,6 @@ def _back(request, fallback="index", **kwargs):
 
 
 def _posts_for(ring, rows, all_comments=False):
-    """Turn rows into what the templates show, opening only what this
-    person holds a key for."""
     posts = list(rows.select_related("user").prefetch_related(
         Prefetch("shares", queryset=PostShare.objects.filter(reader=ring.user)),
         Prefetch("comments", queryset=Comment.objects.select_related("author")),
@@ -71,10 +60,7 @@ def _posts_for(ring, rows, all_comments=False):
     return shown
 
 
-# ---------------------------------------------------------------- the feed
-
 def home_view(request):
-    """The front page for visitors, and the news feed for everyone else."""
     if not request.user.is_authenticated:
         return render(request, "landing.html", {"demo": demo_people(Account)})
     return feed_view(request)
@@ -100,8 +86,6 @@ def feed_view(request, ring):
         "contacts": Account.objects.filter(id__in=friends).order_by("display_name", "username"),
     })
 
-
-# ---------------------------------------------------------------- posts
 
 @needs_key
 @require_POST
@@ -155,7 +139,6 @@ def post_detail_view(request, ring, post_id: int):
 @needs_key
 @require_POST
 def post_audience_view(request, ring, post_id: int):
-    """Change who can read it. Adds or drops wrapped keys, nothing more."""
     post = get_object_or_404(Post, id=post_id, user=ring.user)
     audience = request.POST.get("audience")
     if audience not in dict(Post.AUDIENCES):
@@ -173,12 +156,6 @@ def post_audience_view(request, ring, post_id: int):
 
 @needs_key
 def post_edit_view(request, ring, post_id: int):
-    """Rewrite the text under the key the post already has.
-
-    Every copy of that key, the friends' included, keeps working, so an edit
-    hands nothing out again and takes nothing back. Only the ciphertext, its
-    nonce and the row seal change.
-    """
     post = get_object_or_404(Post, id=post_id, user=ring.user)
     post_key = keys.unwrap_post_key_for_owner(post.key_owner, ring.dek)
     body = open_post_body(post, post_key)
@@ -230,8 +207,6 @@ def post_like_view(request, ring, post_id: int):
     return _back(request)
 
 
-# ---------------------------------------------------------------- comments
-
 @needs_key
 @require_POST
 def comment_new_view(request, ring, post_id: int):
@@ -258,8 +233,6 @@ def comment_delete_view(request, ring, comment_id: int):
     return _back(request, "post_detail", post_id=post_id)
 
 
-# ---------------------------------------------------------------- people
-
 @needs_key
 def profile_view(request, ring, username: str):
     person = get_object_or_404(Account, username__iexact=username)
@@ -270,8 +243,6 @@ def profile_view(request, ring, username: str):
     rows = Post.objects.filter(user=person).order_by("-created_at")
     items = _posts_for(ring, rows)
     readable = [i for i in items if i["state"] == Keyring.OK]
-    # friends-only posts from before the friendship, whose keys the author
-    # has not been signed in to hand over yet
     waiting = sum(1 for i in items if i["state"] == Keyring.LOCKED and rel == "friends"
                   and i["post"].audience == Post.FRIENDS)
 
@@ -334,8 +305,6 @@ def friend_action_view(request, ring, username: str, action: str):
     elif action == "accept" and existing and existing.to_user_id == me.id and not existing.accepted_at:
         existing.accepted_at = timezone.now()
         existing.save(update_fields=["accepted_at"])
-        # our own friends-only posts can be handed over straight away; theirs
-        # wait until they are signed in, since only they can open those keys
         ring._friend_ids = None
         catch_up(ring)
         flash.success(request, f"You and {other.name} are friends now.")
@@ -343,7 +312,6 @@ def friend_action_view(request, ring, username: str, action: str):
         if action == "remove" and not existing.accepted_at:
             return _back(request, "profile", username=other.username)
         existing.delete()
-        # every key either of us handed the other goes with the friendship
         PostShare.objects.filter(Q(post__user=me, reader=other) | Q(post__user=other, reader=me)).delete()
         flash.info(request, {"decline": "Request declined.", "cancel": "Request cancelled.",
                              "remove": f"You are no longer friends with {other.name}."}[action])

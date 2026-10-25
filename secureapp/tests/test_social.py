@@ -1,10 +1,3 @@
-"""Friends, and the keys that go with them.
-
-A friends-only post is readable by a friend because that friend was handed
-a copy of its key, locked with their own public key. These tests check the
-copies: who gets one, when, and that they go away with the friendship.
-"""
-
 from django.test import TestCase
 from django.utils import timezone
 
@@ -111,9 +104,6 @@ class FriendsPostTests(TestCase):
 
 
 class NewFriendTests(TestCase):
-    """A friend made after the post was written gets a key from the author,
-    and only the author can give it, so it waits for them to sign in."""
-
     def setUp(self):
         self.alice, _, _ = full_account("alice")
         self.carol, _, _ = full_account("carol")
@@ -134,7 +124,6 @@ class NewFriendTests(TestCase):
         self.assertContains(self.carol_client.get("/"), "written before carol")
 
     def test_the_accepter_s_own_posts_go_across_at_once(self):
-        """Carol was signed in when she accepted, so her keys went straight away."""
         self.assertTrue(PostShare.objects.filter(post__user=self.carol, reader=self.alice).exists())
         self.assertFalse(PostShare.objects.filter(post__user=self.alice, reader=self.carol).exists())
 
@@ -194,8 +183,6 @@ class LikeTests(TestCase):
 
 
 class RedirectTests(TestCase):
-    """The next field comes from the page, so it is not trusted."""
-
     def setUp(self):
         full_account("alice")
 

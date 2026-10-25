@@ -1,11 +1,3 @@
-"""Settings for SafeBook.
-
-Nothing secret is written in this file. The two secrets - Django's
-SECRET_KEY and the server KEK - come from the environment, and .env is not
-tracked. See .env.example.
-"""
-
-import os
 from pathlib import Path
 
 import environ
@@ -40,7 +32,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # serves the stylesheet and script in production, where runserver is not
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -83,15 +74,12 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Argon2id first: memory hard, so a stolen database is not a wordlist race.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",
     "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
 ]
 
-# The KEK wraps the content key of every public post. It is never written to
-# the database and never leaves this process.
 APP_KEK_BASE64 = env("APP_KEK_BASE64", default=None)
 if not APP_KEK_BASE64:
     raise RuntimeError(
@@ -117,8 +105,6 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
 
-# A session is the window in which the server can read your data, so it is
-# short and it ends when the browser does.
 SESSION_COOKIE_AGE = 60 * 60 * 8
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
@@ -129,12 +115,9 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 
-# Off for a local run over plain http; on everywhere else.
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=not DEBUG)
-# Hosts like Render end TLS in front of the app and pass the scheme on in
-# this header; without it every request looks like http and redirects forever.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000

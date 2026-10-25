@@ -1,15 +1,9 @@
-"""What the server can and cannot read, and what it refuses to show.
-
-These are the tests that decide whether the design does what the front page
-of this project claims it does.
-"""
-
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
 from secureapp import keys
-from secureapp.crypto import aead_decrypt, new_key
-from secureapp.models import Message, Post
+from secureapp.crypto import aead_decrypt
+from secureapp.models import Post
 from secureapp.rsa_utils import generate_rsa_keypair
 from secureapp.keyring import AAD_EMAIL, AAD_PRIVKEY
 
@@ -19,7 +13,6 @@ Account = get_user_model()
 
 
 def full_account(username):
-    """An account with everything registration gives you."""
     user, dek, code = make_account(username)
     from secureapp.crypto import aead_encrypt
     user.email_nonce, user.email_ct = aead_encrypt(dek, b"private@example.com", AAD_EMAIL)
@@ -37,8 +30,6 @@ def sign_in(username=None):
 
 
 class ServerCannotReadTests(TestCase):
-    """The database and the KEK together must not be enough."""
-
     def setUp(self):
         self.alice, self.dek, _ = full_account("alice")
         client = sign_in("alice")
@@ -88,7 +79,6 @@ class PublishingTests(TestCase):
         self.post.refresh_from_db()
 
     def test_publishing_does_not_re_encrypt_the_post(self):
-        """Only a wrapped key is added. That is the point of an envelope."""
         before = bytes(self.post.body_ct)
         self._audience("public")
         self.assertTrue(self.post.is_public)
@@ -152,7 +142,6 @@ class AccessControlTests(TestCase):
                                  fetch_redirect_response=False)
 
     def test_the_front_page_is_public_and_shows_nobody_s_posts(self):
-        """Visitors get the front page; none of anyone's posts are on it."""
         response = Client().get("/")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "landing.html")

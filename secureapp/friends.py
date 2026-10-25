@@ -1,10 +1,3 @@
-"""Who is friends with whom.
-
-A friendship is an accepted FriendRequest, whichever way round it was sent.
-None of this is encrypted: the server has to know who your friends are to
-know whose keys to hand a friends-only post to. The about page says so.
-"""
-
 from django.db.models import Q
 
 from .models import FriendRequest
@@ -18,14 +11,12 @@ def friend_ids(user) -> set[int]:
 
 
 def between(a, b):
-    """The request between two people, whichever way it went, or None."""
     return (FriendRequest.objects
             .filter(Q(from_user=a, to_user=b) | Q(from_user=b, to_user=a))
             .first())
 
 
 def relation(me, other) -> str:
-    """self, friends, sent, received or none: what the profile button says."""
     if me.id == other.id:
         return "self"
     request = between(me, other)

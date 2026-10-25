@@ -1,10 +1,3 @@
-"""The Security Lab.
-
-Five claims this app makes, each with the experiment that checks it, run
-live rather than described. Nothing on these pages touches a real account:
-every key and every message here is generated on the spot and thrown away.
-"""
-
 import base64
 import hashlib
 import hmac
@@ -19,12 +12,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import Argon2PasswordHasher
 from django.shortcuts import render
 
-IMG = 96          # the demo picture is IMG x IMG, one byte per pixel
+IMG = 96
 
 
 def _padlock() -> bytes:
-    """A padlock in greyscale, drawn rather than loaded, so the repository
-    carries no binary assets. The large flat areas are the whole point."""
     pixels = bytearray()
     cx = IMG / 2
     for y in range(IMG):
@@ -43,8 +34,6 @@ def _padlock() -> bytes:
 
 
 def _bmp(gray: bytes, width: int = IMG, height: int = IMG) -> bytes:
-    """An 8 bit greyscale BMP, assembled by hand. Rows are padded to four
-    bytes and stored bottom up, which is simply how the format works."""
     palette = b"".join(bytes((i, i, i, 0)) for i in range(256))
     pad = (-width) % 4
     rows = b"".join(gray[y * width:(y + 1) * width] + b"\x00" * pad
@@ -76,7 +65,6 @@ def lab_index(request):
 
 @login_required
 def modes_view(request):
-    """The same picture through ECB, CBC and GCM."""
     plain = _padlock()
     key = os.urandom(32)
 
@@ -109,7 +97,6 @@ def modes_view(request):
 
 @login_required
 def nonce_view(request):
-    """What one repeated nonce costs you."""
     secret = (request.POST.get("secret") or "meet me at the north gate at nine").strip()
     known = (request.POST.get("known") or "the weather today is really quite mild").strip()
 
@@ -118,18 +105,14 @@ def nonce_view(request):
     key, nonce = os.urandom(32), os.urandom(12)
 
     def keystream(data):
-        # AES-GCM runs AES-CTR underneath, so this is the same keystream the
-        # real thing would produce for that key and nonce
         enc = Cipher(algorithms.AES(key),
                      modes.CTR(nonce + b"\x00\x00\x00\x02")).encryptor()
         return enc.update(data) + enc.finalize()
 
     c1, c2 = keystream(secret.encode()), keystream(known.encode())
 
-    # an eavesdropper holds c1 and c2 and knows one of the two plaintexts
     recovered = _xor(_xor(c1, c2), known.encode())
 
-    # the same pair, with a fresh nonce each time
     g1 = AESGCM(key).encrypt(os.urandom(12), secret.encode(), b"")[:n]
     g2 = AESGCM(key).encrypt(os.urandom(12), known.encode(), b"")[:n]
     junk = _xor(_xor(g1, g2), known.encode())
@@ -149,12 +132,6 @@ def nonce_view(request):
 
 @login_required
 def timing_view(request):
-    """Which ways of comparing a MAC leak where the first wrong byte is.
-
-    Three comparisons of the same 32 bytes. The hand written loop is the one
-    people write when they have not thought about it, and it is the one that
-    gives the answer away.
-    """
     secret = os.urandom(32)
     rounds = 3000
 
@@ -167,14 +144,6 @@ def timing_view(request):
         return True
 
     def fastest_ns(compare, guess):
-        """The quickest of thirteen runs, not the average of them.
-
-        Anything else happening on the machine can only add time to a run,
-        never take it away, so the smallest number is the closest thing to
-        the cost of the comparison by itself. Averaging would fold the
-        machine being busy into the answer, and on a laptop that noise is
-        larger than the effect being measured.
-        """
         samples = []
         for _ in range(13):
             start = time.perf_counter_ns()
@@ -217,12 +186,6 @@ def timing_view(request):
 
 @login_required
 def kdf_view(request):
-    """How many password guesses a second each way of storing one allows.
-
-    MD5 and SHA-256 finish faster than the clock can resolve a single call, so
-    those two are timed over a batch and divided. The slow ones are timed one
-    call at a time, because a batch of them would keep the page waiting.
-    """
     password = b"correct-horse-battery"
     salt = os.urandom(16)
 
@@ -258,7 +221,6 @@ def kdf_view(request):
         row["slowdown"] = fastest / row["per_second"]
         row["bar"] = max(0.5, 100 * row["ms"] / slowest_ms)
 
-    # a six character lowercase password, at each of these speeds
     space = 26 ** 6
     for row in rows:
         row["crack_days"] = space / row["per_second"] / 86400
@@ -268,7 +230,6 @@ def kdf_view(request):
 
 @login_required
 def tamper_view(request):
-    """Flip one bit in a stored row and watch it stop being readable."""
     from .crypto import aead_decrypt, aead_encrypt, new_key
     from .mac import CTX_POST, mac_ok, row_mac
 
