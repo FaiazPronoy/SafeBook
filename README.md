@@ -12,6 +12,7 @@ keys that only you and your friends can unlock.
 | **Course** | CSE447: Cryptography and Cryptanalysis, BRAC University |
 | **Type** | Group project |
 | **Made by** | Faiaz Abrar Zaman Pronoy and Sinthia Khandoker |
+| **Live demo** | https://fazpronoy.pythonanywhere.com |
 | **Versions** | [v1.0, the first version, and v2.0, the rebuild](../../releases) |
 | **History** | Built in Summer 2025 for the course. Rebuilt and published here in October 2026. |
 
