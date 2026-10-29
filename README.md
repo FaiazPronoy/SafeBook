@@ -178,12 +178,12 @@ tools/                             browser checks
 Faiaz led the project and designed the encryption. He split the social side of
 the app with Sinthia and reviewed her work before it was merged.
 
-- **Faiaz Abrar Zaman Pronoy** (ফাইয়াজ আবরার জামান প্রনয়), lead developer
+- **Faiaz Abrar Zaman Pronoy**, lead developer
   - The key design: a key per post, RSA copies for friends, scrypt for passwords
   - The encryption code in `crypto.py`, `keys.py` and `keyring.py`, and the HMAC seals
   - Posts and audiences, the recovery code and server key rotation
   - The test suite that tries to read and tamper with the stored data
-- **Sinthia Khandoker** (সিনথিয়া খন্দকার)
+- **Sinthia Khandoker**
   - Friends and friend requests
   - The chat and the profile pages
   - Sign up, with the password strength meter
