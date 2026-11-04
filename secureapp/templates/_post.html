@@ -8,7 +8,15 @@
       <div class="meta">
         <a href="{% url 'post_detail' p.id %}"><time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|ago }}</time></a>
         {% if p.edited_at %}<span aria-hidden="true">·</span> <span title="Edited {{ p.edited_at|ago }}">edited</span>{% endif %}
-        <span aria-hidden="true">·</span> {% include "_aud.html" %}
+        <details class="aud-pop">
+          <summary aria-label="{{ p.get_audience_display }}. Who can read this?">{% include "_aud.html" %}</summary>
+          <div class="aud-pop-body">
+            {% if p.audience == "me" %}Only you can read this. It is locked with your password.
+            {% elif p.audience == "friends" and i.mine %}Locked for you and {{ i.friends_count }} friend{{ i.friends_count|pluralize }}, each with their own copy of the key.
+            {% elif p.audience == "friends" %}Locked for {{ a|first_name }}'s friends. Your copy of the key opened it.
+            {% else %}Public. SafeBook keeps a key to public posts so anyone can read them.{% endif %}
+          </div>
+        </details>
       </div>
     </div>
     {% if i.mine and i.state == "ok" %}
@@ -44,13 +52,10 @@
     </div>
   {% else %}
     <div class="post-body">{{ i.body|linebreaksbr }}</div>
+    {% if p.image_type %}
+      <img class="post-photo" src="{% url 'post_image' p.id %}" alt="Photo shared by {{ a.name }}" loading="lazy">
+    {% endif %}
 
-    <p class="lockline lock-{{ p.audience }}">
-      {% if p.audience == "me" %}{% icon "lock" %} Only you can read this. It is locked with your password.
-      {% elif p.audience == "friends" and i.mine %}{% icon "key" %} Encrypted for you and {{ i.friends_count }} friend{{ i.friends_count|pluralize }}, each with a key of their own.
-      {% elif p.audience == "friends" %}{% icon "key" %} Encrypted for {{ a|first_name }}'s friends. Your own copy of the key opened it.
-      {% else %}{% icon "globe" %} Public. SafeBook holds a key to this one so anyone can read it.{% endif %}
-    </p>
 
     <div class="post-stats">
       <span class="likes" data-like-count>{% if i.likes %}{% icon "heart" %} {{ i.likes }}{% endif %}</span>

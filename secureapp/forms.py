@@ -134,6 +134,7 @@ class PostForm(forms.Form):
                                                         "placeholder": "What's on your mind?"}))
     audience = forms.ChoiceField(choices=[("friends", "Friends"), ("public", "Public"), ("me", "Only me")],
                                  initial="friends", label="Who can read it")
+    photo = forms.FileField(required=False, label="Photo")
 
 
 class CommentForm(forms.Form):

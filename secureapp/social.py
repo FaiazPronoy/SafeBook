@@ -8,7 +8,7 @@ no key for.
 from django.contrib import messages as flash
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Prefetch, Q
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -18,9 +18,10 @@ from . import keys
 from .demo import demo_people
 from .forms import CommentForm, PostForm
 from .friends import between, relation
-from .keyring import (Keyring, catch_up, open_comment, open_post_body, seal_comment,
-                      seal_post, set_audience)
+from .keyring import (Keyring, catch_up, open_comment, open_post_body, open_post_image,
+                      seal_comment, seal_post, seal_post_image, set_audience)
 from .models import Comment, FriendRequest, Like, Post, PostShare
+from .photos import PhotoError, clean_photo
 from .views import needs_key
 
 Account = get_user_model()
@@ -39,7 +40,7 @@ def _back(request, fallback="index", **kwargs):
 def _posts_for(ring, rows, all_comments=False):
     """Turn rows into what the templates show, opening only what this
     person holds a key for."""
-    posts = list(rows.select_related("user").prefetch_related(
+    posts = list(rows.defer("image_ct", "image_nonce").select_related("user").prefetch_related(
         Prefetch("shares", queryset=PostShare.objects.filter(reader=ring.user)),
         Prefetch("comments", queryset=Comment.objects.select_related("author")),
     ).annotate(like_count=Count("likes", distinct=True),
@@ -103,14 +104,23 @@ def feed_view(request, ring):
 @needs_key
 @require_POST
 def post_new_view(request, ring):
-    form = PostForm(request.POST)
+    form = PostForm(request.POST, request.FILES)
     if not form.is_valid():
         flash.error(request, "Write something first.")
         return redirect("index")
+    photo = None
+    if form.cleaned_data["photo"]:
+        try:
+            photo = clean_photo(form.cleaned_data["photo"])
+        except PhotoError as e:
+            flash.error(request, str(e))
+            return redirect("index")
 
     post_key = keys.new_post_key()
     post = Post(user=ring.user, key_owner=keys.wrap_post_key_for_owner(post_key, ring.dek))
     seal_post(post, post_key, form.cleaned_data["body"])
+    if photo:
+        seal_post_image(post, post_key, *photo)
     friends = Account.objects.filter(id__in=ring.friend_ids)
     set_audience(post, post_key, form.cleaned_data["audience"], friends)
 
@@ -120,6 +130,25 @@ def post_new_view(request, ring):
         Post.PUBLIC: "Posted publicly.",
     }[post.audience])
     return _back(request)
+
+
+@needs_key
+def post_image_view(request, ring, post_id: int):
+    """The photo, opened with the reader's own copy of the post key.
+
+    Someone without a key gets the same 404 as for a post that does not
+    exist, so the URL tells them nothing.
+    """
+    post = get_object_or_404(Post.objects.prefetch_related(
+        Prefetch("shares", queryset=PostShare.objects.filter(reader=ring.user))), id=post_id)
+    state, post_key = ring.post_key(post)
+    data = open_post_image(post, post_key) if state == Keyring.OK else None
+    if data is None:
+        raise Http404
+    response = HttpResponse(data, content_type=post.image_type)
+    response["Cache-Control"] = "private, no-store"
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @needs_key

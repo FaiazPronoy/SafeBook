@@ -23,6 +23,7 @@ urlpatterns = [
 
     path("posts/new/", social.post_new_view, name="post_new"),
     path("posts/<int:post_id>/", social.post_detail_view, name="post_detail"),
+    path("posts/<int:post_id>/photo/", social.post_image_view, name="post_image"),
     path("posts/<int:post_id>/audience/", social.post_audience_view, name="post_audience"),
     path("posts/<int:post_id>/edit/", social.post_edit_view, name="post_edit"),
     path("posts/<int:post_id>/delete/", social.post_delete_view, name="post_delete"),
@@ -37,6 +38,7 @@ urlpatterns = [
     path("messages/", chat.inbox_view, name="messages_inbox"),
     path("messages/<str:username>/", chat.thread_view, name="message_thread"),
 
+    path("protection/", views.protection_view, name="protection"),
     path("lab/", lab.lab_index, name="lab"),
     path("lab/modes/", lab.modes_view, name="lab_modes"),
     path("lab/nonce/", lab.nonce_view, name="lab_nonce"),

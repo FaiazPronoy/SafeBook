@@ -21,6 +21,7 @@ AAD_EMAIL = b"account.email"
 AAD_PHONE = b"account.phone"
 AAD_PRIVKEY = b"account.private_key"
 AAD_POST_BODY = b"post.body"
+AAD_POST_IMAGE = b"post.image"
 AAD_COMMENT_BODY = b"comment.body"
 AAD_MSG_BODY = b"message.body"
 
@@ -38,6 +39,21 @@ def open_post_body(post, post_key):
                   post.body_nonce, post.body_ct):
         return None
     return aead_decrypt(post_key, post.body_nonce, post.body_ct, AAD_POST_BODY).decode()
+
+
+def seal_post_image(post, post_key, data, content_type):
+    post.image_nonce, post.image_ct = aead_encrypt(post_key, data, AAD_POST_IMAGE)
+    post.image_type = content_type
+
+
+def open_post_image(post, post_key):
+    """The photo's bytes, or None if there is none or it does not decrypt."""
+    if not post.image_ct:
+        return None
+    try:
+        return aead_decrypt(post_key, post.image_nonce, post.image_ct, AAD_POST_IMAGE)
+    except Exception:
+        return None
 
 
 def set_audience(post, post_key, audience, friends):

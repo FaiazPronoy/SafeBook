@@ -28,26 +28,11 @@
     });
   }
 
-  /* ---------------------------------------------------------- explainers and flashes */
+  /* ---------------------------------------------------------- flashes */
   document.addEventListener("click", function (event) {
-    var opener = event.target.closest("[data-explain]");
-    if (opener) {
-      var dialog = document.getElementById("x-" + opener.dataset.explain);
-      if (dialog && dialog.showModal) dialog.showModal();
-      return;
-    }
-    if (event.target.closest(".x-close")) {
-      event.target.closest("dialog").close();
-      return;
-    }
     if (event.target.closest(".dismiss")) {
       event.target.closest("li").remove();
     }
-  });
-  document.querySelectorAll("dialog.explain").forEach(function (dialog) {
-    dialog.addEventListener("click", function (event) {
-      if (event.target === dialog) dialog.close();
-    });
   });
 
   /* ---------------------------------------------------------- an eye on every password */
@@ -107,9 +92,32 @@
   var hint = document.querySelector("[data-aud-hint]");
   if (hint) {
     document.querySelectorAll('.aud-pick input[name="audience"]').forEach(function (radio) {
-      radio.addEventListener("change", function () { hint.textContent = radio.dataset.hint; });
+      radio.addEventListener("change", function () {
+        hint.textContent = radio.dataset.hint;
+        hint.classList.toggle("warn", radio.value === "public");
+      });
     });
   }
+
+  /* ---------------------------------------------------------- photo picker */
+  document.querySelectorAll(".photo-pick input").forEach(function (input) {
+    input.addEventListener("change", function () {
+      var name = input.files.length ? input.files[0].name : "Photo";
+      input.parentNode.querySelector("[data-photo-name]").textContent = name;
+      input.parentNode.classList.toggle("has", input.files.length > 0);
+    });
+  });
+
+  /* ---------------------------------------------------------- busy buttons */
+  // a slow post (scrypt, RSA) should not look like nothing happened
+  document.addEventListener("submit", function (event) {
+    var btn = event.submitter;
+    if (!btn || event.defaultPrevented) return;
+    setTimeout(function () {
+      btn.disabled = true;
+      btn.classList.add("busy");
+    }, 0);
+  });
 
   /* ---------------------------------------------------------- like without leaving the page */
   document.querySelectorAll("form[data-like]").forEach(function (form) {

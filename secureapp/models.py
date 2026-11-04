@@ -101,6 +101,11 @@ class Post(models.Model):
     body_nonce = models.BinaryField()
     mac = models.BinaryField(null=True, blank=True)
 
+    # an optional photo, sealed with the same post key as the text
+    image_ct = models.BinaryField(null=True, blank=True)
+    image_nonce = models.BinaryField(null=True, blank=True)
+    image_type = models.CharField(max_length=20, blank=True, default="")
+
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(null=True, blank=True)
 

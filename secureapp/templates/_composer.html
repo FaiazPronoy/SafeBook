@@ -1,6 +1,6 @@
 {% load sb %}
 <section class="card composer" aria-label="Write a post">
-  <form method="post" action="{% url 'post_new' %}">
+  <form method="post" action="{% url 'post_new' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <div class="composer-top">
@@ -18,13 +18,17 @@
           <span>{% icon "users" %} Friends</span></label>
         <label>
           <input type="radio" name="audience" value="public"
-                 data-hint="Anyone on SafeBook can read this. The server keeps a key to it so it can show it to everyone.">
+                 data-hint="Public: anyone on SafeBook can read this, and the server keeps a key to it. Pick Friends if it is not for everyone.">
           <span>{% icon "globe" %} Public</span></label>
         <label>
           <input type="radio" name="audience" value="me"
                  data-hint="Only you. It is locked with your password, and nobody else gets a key.">
           <span>{% icon "lock" %} Only me</span></label>
       </fieldset>
+      <label class="photo-pick">
+        {% icon "image" %}<span data-photo-name>Photo</span>
+        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" class="sr-only">
+      </label>
       <button class="btn" type="submit">Post</button>
     </div>
     <p class="aud-hint" data-aud-hint aria-live="polite">Each of your friends gets their own key to

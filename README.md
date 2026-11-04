@@ -27,13 +27,15 @@ keys that only you and your friends can unlock.
 **Social**
 - Post to Friends, Public or Only me, and change it later
 - Edit a post after it is up
+- Add a photo to a post. It is encrypted with the post's own key and its EXIF data is removed
 - Comment and like
 - Send, accept, decline and cancel friend requests, and unfriend
 - Chat one to one with anyone
 - Profiles, a news feed and a search for people
 
 **Security you can see**
-- A line under every post says who holds a key to it
+- An icon on every post shows who holds a key to it
+- A page that explains how SafeBook protects your posts, in plain words
 - "Who holds a key" shows everyone who can open a post, and the stored encrypted text
 - A safety number on each profile, to check a friend outside the app
 - Your email and phone are stored encrypted
@@ -79,6 +81,7 @@ read a friends-only post or a chat.
 | Encryption | the `cryptography` library (AES-GCM, RSA-OAEP, scrypt, HMAC), argon2 |
 | Frontend | Django templates, hand-written CSS and plain JavaScript |
 | Static files | WhiteNoise |
+| Photos | Pillow, to resize them and strip their metadata |
 | Tests | Django's test runner, Playwright |
 
 Fonts: Chakra Petch, IBM Plex Sans and Fira Code.
@@ -91,16 +94,16 @@ The front page shows the demo people as cards. Pick one to sign in as them.
 
 | Person | Username | Password |
 |---|---|---|
-| Nusrat Jahan | `nusrat` | `Nusrat#2026safe` |
-| Faiaz Rahman | `faiaz` | `Faiaz#2026safe` |
-| Tanvir Hasan | `tanvir` | `Tanvir#2026safe` |
-| Sadia Mim | `mim` | `Mim#2026safe` |
+| Maliha Haque | `maliha` | `Maliha#2026safe` |
+| Rehan Siddiqui | `rehan` | `Rehan#2026safe` |
+| Sajid Mahmud | `sajid` | `Sajid#2026safe` |
+| Oishee Barua | `oishee` | `Oishee#2026safe` |
 
 Two-step sign in stays off on the demo accounts, so they always open. Make your own
 account to try it.
 
-Try this: sign in as Mim and open Faiaz's profile (his friends-only posts are
-hidden). Then sign in as Faiaz, accept Mim's request, and sign in as Mim again.
+Try this: sign in as Oishee and open Rehan's profile (his friends-only posts are
+hidden). Then sign in as Rehan, accept Oishee's request, and sign in as Oishee again.
 
 ---
 
@@ -141,7 +144,7 @@ Copy `.env.example` to `.env`. `python manage.py new_keys --write` fills in both
 
 ## Tests
 
-- `python manage.py test` runs **136 tests**
+- `python manage.py test` runs **143 tests**
 - They prove that the database and the server key alone cannot open friends-only posts, that keys move correctly when friends change, and that tampering is caught
 - Two-step sign in is tested end to end: wrong, reused and expired codes are refused
 - `tools/browser_checks.py` opens every page and checks contrast in both themes and on a phone
