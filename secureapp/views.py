@@ -372,3 +372,7 @@ def two_step_off_view(request):
     else:
         flash.error(request, "That is not your password.")
     return redirect("account")
+
+
+def protection_view(request):
+    return render(request, "protection.html")

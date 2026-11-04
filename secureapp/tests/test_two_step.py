@@ -127,10 +127,10 @@ class TwoStepTests(TestCase):
         self.assertNotIn(code_in(mail.outbox[-1]), str(stored))
 
     def test_demo_accounts_cannot_turn_it_on(self):
-        demo, dek, _ = make_account("nusrat")
-        demo.email_nonce, demo.email_ct = aead_encrypt(dek, b"nusrat@safebook.test", AAD_EMAIL)
+        demo, dek, _ = make_account("maliha")
+        demo.email_nonce, demo.email_ct = aead_encrypt(dek, b"maliha@safebook.test", AAD_EMAIL)
         demo.save()
-        self.client.post("/login/", {"username": "nusrat", "password": PASSWORD})
+        self.client.post("/login/", {"username": "maliha", "password": PASSWORD})
         self.client.post("/account/two-step/start/")
         self.assertEqual(len(mail.outbox), 0)
         demo.refresh_from_db()

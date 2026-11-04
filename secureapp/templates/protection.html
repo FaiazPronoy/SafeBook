@@ -1,9 +1,14 @@
-<dialog class="explain" id="x-vault">
-  <div class="x-head">
-    <h2>What happens to what you post</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+{% extends "base.html" %}
+{% block title %}How SafeBook protects your posts | SafeBook{% endblock %}
+{% block content %}
+<div class="narrow protection">
+  <h1>How SafeBook protects your posts</h1>
+  <p class="lede">What is locked, who holds a key, and what the server can still see.
+    Open any section.</p>
+
+<details class="topic" id="vault">
+  <summary><h2>What happens to what you post</h2></summary>
+  <div class="topic-body">
     <p>Every post is locked before it is saved, with a key made just for that post.
       Then copies of that key are handed to the people allowed to read it, and to
       nobody else.</p>
@@ -24,14 +29,11 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-audience">
-  <div class="x-head">
-    <h2>Only me, Friends and Public</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="audience">
+  <summary><h2>Only me, Friends and Public</h2></summary>
+  <div class="topic-body">
     <p><b>Only me.</b> The only copy of the post's key is yours, locked with your
       password. Nobody else holds a key to it, SafeBook included.</p>
     <p><b>Friends.</b> Each friend gets a copy of the key, locked with their own public
@@ -56,14 +58,11 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-messages">
-  <div class="x-head">
-    <h2>How a chat message is sealed</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="messages">
+  <summary><h2>How a chat message is sealed</h2></summary>
+  <div class="topic-body">
     <p>Every account has a pair of matched locks. One half is public, so anyone can lock
       something for you. The other half is yours, and it is the only thing that opens what
       they locked.</p>
@@ -81,14 +80,11 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-safety-number">
-  <div class="x-head">
-    <h2>What a safety number is for</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="safety-number">
+  <summary><h2>What a safety number is for</h2></summary>
+  <div class="topic-body">
     <p>Every account has a short code of its own, worked out from that account's public
       lock. It changes if the lock ever changes.</p>
     <p>Read yours out to a friend in person or on a call, and check it against what
@@ -106,14 +102,11 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-password">
-  <div class="x-head">
-    <h2>Your password is also your key</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="password">
+  <summary><h2>Your password is also your key</h2></summary>
+  <div class="topic-body">
     <p>Most sites use your password to check that you are you. Here it does that and one
       more thing: it unlocks the key to your posts and chats.</p>
     <p>So changing it is quick and safe. Your posts are not touched at all. Only the small
@@ -130,14 +123,11 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-recovery">
-  <div class="x-head">
-    <h2>Why the recovery code matters</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="recovery">
+  <summary><h2>Why the recovery code matters</h2></summary>
+  <div class="topic-body">
     <p>Because your password is what unlocks your things, forgetting it would normally
       mean losing them. There is nobody here who can open your account for you.</p>
     <p>The recovery code is a second lock around the same key. Keep it somewhere real,
@@ -145,14 +135,11 @@
       can read.</p>
     <p>Anyone holding it can get into your account, so treat it like a spare front door key.</p>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-signin">
-  <div class="x-head">
-    <h2>Signing in</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="signin">
+  <summary><h2>Signing in</h2></summary>
+  <div class="topic-body">
     <p>A wrong password takes the same time whether or not the account exists, and says
       the same thing either way. Otherwise this page would tell strangers which names are
       real.</p>
@@ -163,14 +150,11 @@
     <p>For a second lock, turn on two-step sign in under Settings and security. Then a
       password alone is not enough: SafeBook also asks for a code it emails to you.</p>
   </div>
-</dialog>
+</details>
 
-<dialog class="explain" id="x-checks">
-  <div class="x-head">
-    <h2>Why something might not open</h2>
-    <button class="x-close" type="button" aria-label="Close">&times;</button>
-  </div>
-  <div class="x-body">
+<details class="topic" id="checks">
+  <summary><h2>Why something might not open</h2></summary>
+  <div class="topic-body">
     <p>Every post, comment and message carries a small seal, taken over the locked text
       when it was saved. Before anything is shown to you, that seal is checked.</p>
     <p>If even one character of the stored text has changed since, the seal will not
@@ -186,4 +170,22 @@
       </div>
     </details>
   </div>
-</dialog>
+</details>
+
+
+  <h2 class="h-sub">What the server can see</h2>
+  <p>Who is friends with whom, who liked what, when things were posted, and your name
+    and bio. While you are signed in, the server uses your key to show you your own
+    things. After you sign out it holds nothing that opens them. Public posts are locked
+    with a server key, so the server can open those.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // open the section named in the link, so "Why?" lands on the answer
+  (function () {
+    var t = location.hash && document.getElementById(location.hash.slice(1));
+    if (t && t.tagName === "DETAILS") { t.open = true; t.scrollIntoView(); }
+  })();
+</script>
+{% endblock %}

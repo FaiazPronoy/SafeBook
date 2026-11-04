@@ -1,121 +1,162 @@
 {% extends "base.html" %}
 {% load sb %}
 {% block title %}SafeBook | An Encrypted Social Media Network{% endblock %}
+{% block main_class %}landing{% endblock %}
 {% block content %}
 
-<section class="hero">
-  <div class="hero-text">
-    <p class="eyebrow">{% icon "lock" %} Encrypted social network</p>
-    <h1 class="stair"><span>Share with friends.</span><span class="step-2 hl">Not with us.</span></h1>
-    <p class="lede">SafeBook works like the social apps you know: post, comment, like and
-      chat with friends. The difference is that everything is locked before it is saved,
-      with keys that only you and the people you choose hold. The server stores your posts
-      without a key of its own.</p>
-    <div class="actions">
-      <a class="btn big" href="#try">Try a demo account</a>
-      <a class="btn-soft big" href="{% url 'register' %}">Create an account</a>
+<section class="band-hero">
+  <div class="wrap hero">
+    <div class="hero-text">
+      <p class="eyebrow">{% icon "lock" %} Encrypted social network</p>
+      <h1>Your posts are locked before they are saved.</h1>
+      <p class="lede">Post, comment and chat with friends. Each post gets its own key, and
+        only the people you pick get a copy of it.</p>
+      <div class="actions">
+        <a class="btn big" href="#try">Try a demo account</a>
+        <a class="btn-line big" href="{% url 'register' %}">Create an account</a>
+      </div>
+      <p class="sysline"><span>AES-256-GCM</span><span>RSA-OAEP 2048</span><span>scrypt</span></p>
     </div>
-    <p class="sysline"><span class="led" aria-hidden="true"></span> <b>keys stay with people</b>
-      <span>AES-256-GCM</span><span>RSA-2048</span><span>scrypt</span></p>
-  </div>
 
-  <div class="hero-demo" aria-label="One post, as a friend sees it and as the server stores it">
-    <article class="card post mock">
-      <header class="post-head">
-        <span class="av" style="--h: 200" aria-hidden="true">NJ</span>
-        <div class="who"><span class="nm">Nusrat Jahan</span>
-          <div class="meta">20 hours ago · <span class="aud aud-friends">{% icon "users" %}<span>Friends</span></span></div></div>
-      </header>
-      <div class="post-body">Gave my first talk today! Someone asked why a friends-only post needs a
-        key for every friend, and I got to draw it on the whiteboard.</div>
-      <p class="lockline lock-friends">{% icon "key" %} Encrypted for Nusrat and her 3 friends.</p>
-    </article>
-    <div class="server-view">
-      <p class="server-label">{% icon "server" %} The same post in SafeBook's database</p>
-      <p class="hex">9f3a51c0e27b0d846a19f2ce7b3058de1c4fa96307e2b5d13c8a4f06e9b72d1580fac63e71b90e4da2c85f173b6ed94018c57a2f…</p>
-      <p class="small">The server holds no key to this. The keys are with Nusrat and her friends.</p>
+    <div class="term" data-term>
+      <div class="term-bar">
+        <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>post #4471, friends only</span>
+      </div>
+      <div class="term-body">
+        <p class="term-cmd"><span class="pr" aria-hidden="true">$</span> <span data-cmd>select body_ct from post where id = 4471</span></p>
+        <p class="term-state"><span class="st st-locked" data-state>LOCKED</span>
+          <span data-note>what the database holds</span></p>
+        <p class="term-out" data-out aria-live="polite"
+           data-plain="Maliha: Gave my first talk today. Someone asked why a friends post needs a key for every friend, so I drew it on the whiteboard.">9f3a51c0e27b0d846a19f2ce7b3058de1c4fa96307e2b5d13c8a4f06e9b72d1580fac63e71b90e4da2c85f173b6ed94018c57a2f6b1e0c94d27a35f8e1c0b6d4a2</p>
+      </div>
+      <div class="term-actions">
+        <button type="button" data-act="open">{% icon "key" %} As a friend</button>
+        <button type="button" data-act="lock">{% icon "server" %} As stored</button>
+        <button type="button" data-act="stranger">{% icon "x" %} With no key</button>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="features" aria-labelledby="featTitle">
-  <div class="sect-head">
-    <p class="eyebrow">Everything you would expect</p>
-    <h2 id="featTitle">What you can do</h2>
-    <p>The parts of a social app people actually use, with a lock built into each one.</p>
-  </div>
-  <div class="feature-grid">
-    <div class="feature">
-      <span class="f-ico">{% icon "users" %}</span>
-      <h3>Post to the right people</h3>
-      <p>Pick <b>Friends</b>, <b>Public</b> or <b>Only me</b> for every post, and change it
-        later. The choice decides who gets a key, not just who sees a button.</p>
+<section class="wrap block" aria-labelledby="whoTitle">
+  <h2 id="whoTitle">Who holds a key</h2>
+  <p class="muted">Pick an audience to see who can open it.</p>
+  <div class="aud-demo" data-audiences>
+    <div class="pills" role="radiogroup" aria-label="Audience">
+      <button type="button" role="radio" aria-checked="true" data-holders="you">{% icon "lock" %} Only me</button>
+      <button type="button" role="radio" aria-checked="false" data-holders="you friends">{% icon "users" %} Friends</button>
+      <button type="button" role="radio" aria-checked="false" data-holders="you friends everyone server">{% icon "globe" %} Public</button>
+      <button type="button" role="radio" aria-checked="false" data-holders="you them">{% icon "chat" %} Direct chat</button>
     </div>
-    <div class="feature">
-      <span class="f-ico">{% icon "comment" %}</span>
-      <h3>Comment and like</h3>
-      <p>Comments are locked with the same key as the post, so exactly the people who can
-        read a post can read the conversation under it.</p>
-    </div>
-    <div class="feature">
-      <span class="f-ico">{% icon "chat" %}</span>
-      <h3>Chat in private</h3>
-      <p>Each message is sealed for the two people in the chat. Scroll back through your
-        history; SafeBook keeps no key to any of it.</p>
-    </div>
-    <div class="feature">
-      <span class="f-ico">{% icon "shield" %}</span>
-      <h3>Check a friend's key</h3>
-      <p>Every profile shows a safety number. Compare it with a friend in person and you
-        know nobody swapped their key for another.</p>
-    </div>
+    <ul class="holders-row">
+      <li data-who="you" class="has">{% icon "key" %}<span>You</span></li>
+      <li data-who="them">{% icon "key" %}<span>The person you chat with</span></li>
+      <li data-who="friends">{% icon "key" %}<span>Your friends</span></li>
+      <li data-who="everyone">{% icon "key" %}<span>Anyone signed out</span></li>
+      <li data-who="server">{% icon "key" %}<span>SafeBook's server</span></li>
+    </ul>
+    <p class="small muted">Public posts are locked with a server key so they can show to
+      people who are not signed in. <a href="{% url 'protection' %}">How SafeBook protects your posts</a></p>
   </div>
 </section>
 
-<div class="sect-head">
-  <p class="eyebrow">No fine print</p>
-  <h2 id="whoTitle">Who can read what</h2>
-  <p>Not a privacy setting on top of a readable database. Each tick is a person holding a
-    key; each cross is somebody who does not have one.</p>
-</div>
-<section class="who-reads card" aria-labelledby="whoTitle">
-  <div class="card-body">
-    <div class="table-wrap">
-      <table class="matrix">
-        <thead>
-          <tr><th scope="col"></th><th scope="col">You</th><th scope="col">Your friends</th>
-              <th scope="col">Everyone else</th><th scope="col">SafeBook's server</th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">{% icon "lock" %} Only me posts</th>
-            <td class="y">{% icon "check" "yes" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
-          <tr><th scope="row">{% icon "users" %} Friends posts and their comments</th>
-            <td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
-          <tr><th scope="row">{% icon "globe" %} Public posts</th>
-            <td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td><td class="y">{% icon "check" "yes" %}</td></tr>
-          <tr><th scope="row">{% icon "chat" %} Chats</th>
-            <td class="y">{% icon "check" "yes" %}</td><td class="muted">only the one you chat with</td><td class="n">{% icon "x" "no" %}</td><td class="n">{% icon "x" "no" %}</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="small muted">What the server does see: who is friends with whom, who liked
-      what, when things were posted, and your name and bio. And while you are signed in,
-      the server uses your key to show you your own things; sign out and it holds nothing
-      that opens them. Hiding all of that would need the encryption to run in your browser,
-      which is a different kind of app, and SafeBook says so rather than pretend.</p>
-  </div>
+<section class="wrap block" aria-labelledby="featTitle">
+  <h2 id="featTitle">What you can do</h2>
+  <ul class="feature-list">
+    <li>{% icon "users" %}<div><h3>Post to the right people</h3>
+      <p>Pick Friends, Public or Only me for each post, and change it later.</p></div></li>
+    <li>{% icon "comment" %}<div><h3>Comment and like</h3>
+      <p>Comments use the post's key, so the same people can read them.</p></div></li>
+    <li>{% icon "chat" %}<div><h3>Chat</h3>
+      <p>Each message is sealed for the two people in the chat.</p></div></li>
+    <li>{% icon "shield" %}<div><h3>Check a friend's key</h3>
+      <p>Compare safety numbers in person to know the key really is theirs.</p></div></li>
+  </ul>
 </section>
 
 {% if demo %}
-<section id="try" class="try" aria-labelledby="tryTitle">
-  <div class="sect-head">
-    <p class="eyebrow">Look around first</p>
-    <h2 id="tryTitle">Try it as one of them</h2>
-    <p>These people already use this copy of SafeBook. Pick one and you are signed in as
-      them, with their friends, posts and chats. Nothing to type.</p>
-  </div>
+<section id="try" class="wrap block" aria-labelledby="tryTitle">
+  <h2 id="tryTitle">Try it as one of them</h2>
+  <p class="muted">Demo accounts with their own friends, posts and chats. Pick one to sign in.</p>
   {% include "_demo_people.html" %}
 </section>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // the hero terminal: scramble from ciphertext to text and back
+    var term = document.querySelector("[data-term]");
+    if (term) {
+      var out = term.querySelector("[data-out]");
+      var cmd = term.querySelector("[data-cmd]");
+      var state = term.querySelector("[data-state]");
+      var note = term.querySelector("[data-note]");
+      var plain = out.dataset.plain;
+      var cipher = out.textContent.trim();
+      var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var timer = null;
+      var HEX = "0123456789abcdef";
+
+      var scramble = function (target, done) {
+        clearInterval(timer);
+        if (calm) { out.textContent = target; if (done) done(); return; }
+        var from = out.textContent, frame = 0, total = 28;
+        var len = Math.max(from.length, target.length);
+        timer = setInterval(function () {
+          frame++;
+          var fixed = Math.floor(len * frame / total), text = "";
+          for (var k = 0; k < len; k++) {
+            if (k < fixed) text += target.charAt(k);
+            else if (k < target.length) text += HEX.charAt(Math.floor(Math.random() * 16));
+          }
+          out.textContent = text;
+          if (frame >= total) { clearInterval(timer); out.textContent = target; if (done) done(); }
+        }, 40);
+      };
+      var show = function (label, cls, text, command, target) {
+        state.textContent = label;
+        state.className = "st " + cls;
+        note.textContent = text;
+        cmd.textContent = command;
+        out.classList.toggle("is-plain", target === plain);
+        scramble(target);
+      };
+      var acts = {
+        open: function () {
+          show("OPEN", "st-open", "unwrapped with Rehan's RSA key", "open post 4471 --as rehan", plain);
+        },
+        lock: function () {
+          show("LOCKED", "st-locked", "what the database holds", "select body_ct from post where id = 4471", cipher);
+        },
+        stranger: function () {
+          show("DENIED", "st-denied", "no copy of the post key for this account", "open post 4471 --as stranger", cipher);
+        }
+      };
+      term.querySelectorAll("[data-act]").forEach(function (b) {
+        b.addEventListener("click", function () { acts[b.dataset.act](); });
+      });
+      setTimeout(acts.open, 1200);
+    }
+
+    var aud = document.querySelector("[data-audiences]");
+    if (aud) {
+      var pick = function (btn) {
+        var who = btn.dataset.holders.split(" ");
+        aud.querySelectorAll("[role=radio]").forEach(function (o) {
+          o.setAttribute("aria-checked", o === btn ? "true" : "false");
+        });
+        aud.querySelectorAll("[data-who]").forEach(function (li) {
+          li.classList.toggle("has", who.indexOf(li.dataset.who) !== -1);
+        });
+      };
+      aud.querySelectorAll("[role=radio]").forEach(function (b) {
+        b.addEventListener("click", function () { pick(b); });
+      });
+    }
+  })();
+</script>
 {% endblock %}

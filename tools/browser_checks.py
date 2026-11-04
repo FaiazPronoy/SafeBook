@@ -8,8 +8,8 @@ BASE = os.environ.get("SB_BASE", "http://127.0.0.1:8010")
 CHANNEL = os.environ.get("SB_BROWSER", "msedge")
 SHOTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shots")
 PUBLIC = ["/", "/login/", "/register/", "/recover/"]
-PRIVATE = ["/", "/friends/", "/u/nusrat/", "/u/faiaz/", "/u/tanvir/", "/messages/",
-           "/messages/tanvir/", "/account/", "/lab/", "/lab/modes/", "/lab/nonce/",
+PRIVATE = ["/", "/friends/", "/u/maliha/", "/u/rehan/", "/u/sajid/", "/messages/",
+           "/messages/sajid/", "/account/", "/lab/", "/lab/modes/", "/lab/nonce/",
            "/lab/timing/", "/lab/kdf/", "/lab/tamper/"]
 PASS, FAIL = [], []
 
@@ -142,7 +142,7 @@ def main():
         eye.click()
         check("and hides it again", page.locator("#id_password").get_attribute("type") == "password")
         open_demo(page)
-        check("a demo card signs in as that person", page.locator(".side-me > span:last-child").inner_text().strip() == "Nusrat Jahan")
+        check("a demo card signs in as that person", page.locator(".side-me > span:last-child").inner_text().strip() == "Maliha Haque")
 
         page.fill("#id_body", "Written by the browser check.")
         page.locator(".aud-pick label", has_text="Only me").click()
@@ -151,7 +151,7 @@ def main():
         page.wait_for_load_state("networkidle")
         post = page.locator("article.post", has_text="Written by the browser check.").first
         check("a new post shows up at the top, locked for its author",
-              "Only you can read this" in post.locator(".lockline").inner_text())
+              "Only you can read this" in post.locator(".aud-pop-body").text_content())
 
         post.locator("[data-like] button").click()
         page.wait_for_function("b => b.getAttribute('aria-pressed') === 'true'",
@@ -169,11 +169,11 @@ def main():
         post.locator(".post-menu summary").click()
         post.locator(".post-menu a.danger").click()
         page.wait_for_load_state("networkidle")
-        page.locator("main form button[type=submit]").first.click()
-        page.wait_for_load_state("networkidle")
+        with page.expect_navigation():
+            page.locator("main form button[type=submit]").first.click()
         check("and the post can be deleted again", "Written by the browser check." not in page.content())
 
-        page.goto(BASE + "/messages/tanvir/")
+        page.goto(BASE + "/messages/sajid/")
         page.fill("#id_body", "Hello from the browser check")
         page.keyboard.press("Enter")
         page.wait_for_load_state("networkidle")

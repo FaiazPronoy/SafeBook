@@ -16,55 +16,55 @@ from secureapp.rsa_utils import generate_rsa_keypair
 
 Account = get_user_model()
 
-FRIENDS = [("nusrat", "faiaz"), ("tanvir", "nusrat"), ("nusrat", "mim"), ("faiaz", "tanvir")]
-PENDING = [("mim", "faiaz")]
+FRIENDS = [("maliha", "rehan"), ("sajid", "maliha"), ("maliha", "oishee"), ("rehan", "sajid")]
+PENDING = [("oishee", "rehan")]
 
 POSTS = [
-    ("tanvir", "public", 3,
+    ("sajid", "public", 3,
      "Sunset from a rooftop in Lalbagh. Twelve floors of stairs, zero regrets. "
      "The fort looks like a painting from up here.",
-     [("nusrat", "Which building? I want to go before the rains come back."),
-      ("tanvir", "The blue one behind Moti Mia's bakery. Bring water.")],
-     ["nusrat", "faiaz", "mim"]),
-    ("faiaz", "friends", 6,
+     [("maliha", "Which building? I want to go before the rains come back."),
+      ("sajid", "The blue one behind Moti Mia's bakery. Bring water.")],
+     ["maliha", "rehan", "oishee"]),
+    ("rehan", "friends", 6,
      "Finally moved my notes off the cloud drive I did not trust. Took a whole "
      "evening. If you need the crypto slides, ask me here, not on the group chat.",
-     [("nusrat", "Asking here then. Week 9 please, the one on key exchange.")],
-     ["nusrat"]),
-    ("nusrat", "friends", 20,
+     [("maliha", "Asking here then. Week 9 please, the one on key exchange.")],
+     ["maliha"]),
+    ("maliha", "friends", 20,
      "Gave my first talk today. Someone asked why a friends-only post needs a "
      "copy of the key for every friend, and I got to draw it on the whiteboard.",
-     [("mim", "Proud of you!!"), ("faiaz", "Told you the diagram would carry it."),
-      ("tanvir", "Treat is on you now.")],
-     ["mim", "faiaz", "tanvir"]),
-    ("nusrat", "me", 26,
+     [("oishee", "Proud of you!!"), ("rehan", "Told you the diagram would carry it."),
+      ("sajid", "Treat is on you now.")],
+     ["oishee", "rehan", "sajid"]),
+    ("maliha", "me", 26,
      "Recovery code is in the envelope with my passport. If I forget my password "
      "this is the only way back in, and nobody at SafeBook can help me.",
      [], []),
-    ("mim", "public", 30,
+    ("oishee", "public", 30,
      "Hot take: a padlock icon in a corner is decoration, not proof. Ask who "
      "holds the key.",
-     [("faiaz", "Framing this.")],
-     ["faiaz", "tanvir"]),
-    ("faiaz", "me", 44,
+     [("rehan", "Framing this.")],
+     ["rehan", "sajid"]),
+    ("rehan", "me", 44,
      "Bank details. Account 4417, branch Mirpur. Encrypted with a key the server "
      "cannot unwrap while I am signed out.",
      [], []),
-    ("tanvir", "friends", 52,
+    ("sajid", "friends", 52,
      "Anyone free on Friday? Thinking biryani in Old Dhaka and then the "
      "riverside after dark.",
-     [("faiaz", "In. Star Kabab first though."), ("nusrat", "Only if we walk back.")],
-     ["faiaz", "nusrat"]),
+     [("rehan", "In. Star Kabab first though."), ("maliha", "Only if we walk back.")],
+     ["rehan", "maliha"]),
 ]
 
 CHATS = [
-    ("faiaz", "nusrat", 300, "Before I send the draft: read your safety number back to me?"),
-    ("nusrat", "faiaz", 296, "Checked on the phone. Both ends match."),
-    ("faiaz", "nusrat", 295, "Perfect, sending it tonight."),
-    ("tanvir", "nusrat", 90, "The photos from the rooftop are up, public this time."),
-    ("nusrat", "tanvir", 84, "Saw them. The third one is my new wallpaper."),
-    ("tanvir", "nusrat", 12, "Friday still on?"),
-    ("mim", "nusrat", 40, "Can you tell Faiaz to accept my request? 😅"),
+    ("rehan", "maliha", 300, "Before I send the draft: read your safety number back to me?"),
+    ("maliha", "rehan", 296, "Checked on the phone. Both ends match."),
+    ("rehan", "maliha", 295, "Perfect, sending it tonight."),
+    ("sajid", "maliha", 90, "The photos from the rooftop are up, public this time."),
+    ("maliha", "sajid", 84, "Saw them. The third one is my new wallpaper."),
+    ("sajid", "maliha", 12, "Friday still on?"),
+    ("oishee", "maliha", 40, "Can you tell Rehan to accept my request? 😅"),
 ]
 
 

@@ -6,17 +6,17 @@
   <title>{% block title %}SafeBook | An Encrypted Social Media Network{% endblock %}</title>
   <meta name="author" content="Faiaz Abrar Zaman Pronoy and Sinthia Khandoker">
   <meta name="description" content="SafeBook is a social network where your posts, comments and chats are locked with keys only you and your friends hold. The server stores them without a key of its own.">
-  <meta name="theme-color" content="#050910">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+  <meta name="theme-color" content="#070B10">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500&display=swap">
   <link rel="stylesheet" href="{% static 'style.css' %}">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z' fill='%23050910'/><circle cx='16' cy='11' r='3.2' fill='%2300E08A'/><path d='M14.4 13h3.2l.9 5h-5z' fill='%2300E08A'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z' fill='%23070B10'/><circle cx='16' cy='11' r='3.2' fill='%232EE59D'/><path d='M14.4 13h3.2l.9 5h-5z' fill='%232EE59D'/></svg>">
   <script>
     (function () {
       try {
         var stored = localStorage.getItem("safebook-theme");
-        document.documentElement.setAttribute("data-theme", stored || "dark");
+        document.documentElement.setAttribute("data-theme", stored === "light" ? "light" : "dark");
       } catch (e) {}
     })();
   </script>
@@ -30,7 +30,7 @@
   <div class="topbar-inner">
     <div class="tb-left">
       <a class="brand" href="{% url 'index' %}" aria-label="SafeBook home">
-        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z" fill="#00E08A"/><circle cx="16" cy="11" r="3.2" fill="#050910"/><path d="M14.4 13h3.2l.9 5h-5z" fill="#050910"/></svg>
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 6a4 4 0 0 1 4-4h16a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H13l-6 5v-5H8a4 4 0 0 1-4-4z" fill="#2EE59D"/><circle cx="16" cy="11" r="3.2" fill="#070B10"/><path d="M14.4 13h3.2l.9 5h-5z" fill="#070B10"/></svg>
         <span class="brand-word">SafeBook</span>
       </a>
       {% if user.is_authenticated %}
@@ -98,13 +98,12 @@
 
 {% block footer %}
 <footer class="site-footer">
-  <span><b>SafeBook</b> · share with friends, not with the server</span>
-  <span>Posts, comments and chats are encrypted before they are stored.</span>
-  <span>Made by Faiaz Abrar Zaman Pronoy and Sinthia Khandoker · © {% now "Y" %}</span>
+  <span><b>SafeBook</b>. The accounts on this copy are demo accounts.</span>
+  <span><a href="{% url 'protection' %}">How SafeBook protects your posts</a></span>
+  <span>Made by Faiaz Abrar Zaman Pronoy and Sinthia Khandoker, © {% now "Y" %}</span>
 </footer>
 {% endblock %}
 
-{% include "_dialogs.html" %}
 
 <script src="{% static 'app.js' %}" defer></script>
 {% block scripts %}{% endblock %}
