@@ -23,6 +23,8 @@
   --brand-soft: #DCF2E7;
   --neon: #04784B;
   --key: #0E6F86;
+  --glow-a: rgba(4, 120, 75, .07);
+  --grid: rgba(4, 120, 75, .05);
   --bar-a: #070B10;
   --on-bar: #D7E9E2;
   --signal: #2EE59D;
@@ -62,6 +64,8 @@
   --brand-soft: #0D2A21;
   --neon: #2EE59D;
   --key: #4CC9F0;
+  --glow-a: rgba(46, 229, 157, .11);
+  --grid: rgba(46, 229, 157, .035);
   --band: #05080C;
   --coral: #FF6B95;
   --coral-soft: #331524;
@@ -87,6 +91,22 @@ body {
   display: flex;
   flex-direction: column;
 }
+/* a faint grid behind every page, fixed so the feed scrolls over it */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 32px 32px;
+}
+/* one slow scan line down the screen, the console's only idle motion */
+body::after {
+  content: ""; position: fixed; left: 0; right: 0; top: -140px; height: 140px; z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--glow-a), transparent);
+  animation: scan 11s linear infinite;
+}
+@keyframes scan { to { transform: translateY(calc(100vh + 140px)); } }
+@media (prefers-reduced-motion: reduce) { body::after { animation: none; display: none; } }
 main { flex: 1; }
 h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0 0 var(--s2); letter-spacing: .01em; text-wrap: balance; }
 h1 { font-size: 1.75rem; font-weight: 700; }
